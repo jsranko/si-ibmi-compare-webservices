@@ -21,7 +21,7 @@ yum install git
 ### Clone project
 A local copy of the project must be created:
 ```
-git clone https://github.com/jsranko/si-x.git
+git clone https://github.com/jsranko/si-ibmi-compare-webservices.git
 ```
 
 ### Build project
