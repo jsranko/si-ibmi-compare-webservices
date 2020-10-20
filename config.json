@@ -1,0 +1,9 @@
+{
+	"library": {
+		"compareWebServices": "SICOMIIWS",
+		"ileastic" : "ILEASTIC"
+	},
+	"headers": {
+		"ileastic" : "Apps/ILEastic/ILEastic/headers"
+	} 
+}

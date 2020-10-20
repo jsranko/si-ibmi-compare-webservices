@@ -1,0 +1,4 @@
+Apps/*.*
+*.lib
+*.srcpf
+*.pgm
