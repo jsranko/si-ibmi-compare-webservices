@@ -4,6 +4,12 @@
 		"ileastic" : "ILEASTIC"
 	},
 	"headers": {
-		"ileastic" : "Apps/ILEastic/ILEastic/headers"
-	} 
+		"ileastic" : "Apps/ILEastic/ILEastic/headers",
+		"cgi": "CGISRV1"
+	}, 
+	"port": {
+		"ileastic" : 44001,
+		"iws" : 44002,
+		"cgi" : 44003
+	}
 }

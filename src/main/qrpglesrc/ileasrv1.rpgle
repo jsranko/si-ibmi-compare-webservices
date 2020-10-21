@@ -19,7 +19,7 @@ dcl-proc main;
 
     dcl-ds config likeds(IL_CONFIG);
 
-    config.port = 44001;
+    config.port = $(ILEASTIC_PORT);
     config.host = '*ANY';
 
     il_listen (config : %paddr(myservlet));

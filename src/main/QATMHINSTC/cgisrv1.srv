@@ -1,0 +1,1 @@
+-apache -d /www/$(CGI_ROOT) -f conf/httpd.conf -AutoStart Y
