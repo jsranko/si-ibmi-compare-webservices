@@ -1,5 +1,9 @@
-Apps/*.*
+Apps/*
 *.lib
 *.srcpf
 *.pgm
 *.jar
+src/main/QATMHINSTC/*.httpd
+src/main/QATMHINSTC/*.cgisrv
+*.bnddir
+*.cpysrc

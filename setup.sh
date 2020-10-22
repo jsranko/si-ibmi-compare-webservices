@@ -1,8 +1,13 @@
 #!/bin/bash
 
-OPENSRC_DIR=/QOpenSys/pkgs/bin	
-ILEASTIC_LIB=$(jq '.library.ileastic' -r ./config.json)
-CGI_ROOT=$(jq '.headers.cgi' -r ./config.json)
+PTH==$(jq '.path' -r ./config.json)
+ILEASTIC_LIB=$(jq '.ileastic.library' -r ./config.json)
+ILEASTIC_DIR=$(jq '.ileastic.dir' -r ./config.json)
+ILEASTIC_ROOT=$PWD/${ILEASTIC_DIR}
+CGI_DIR=$(jq '.cgi.dir' -r ./config.json)
+CGI_ROOT=${CGI_DIR}
+PHP_PORT=$(jq '.php.port' -r ./config.json)
+PHP_DIR=./src/main/php
 
 ################################################################################
 #
@@ -31,7 +36,7 @@ exist_directory()
 install_dependencies()
 
 {	
-		yum -y install 'git' 'make-gnu' 'jq'  'curl' 		
+		yum -y install 'git' 'make-gnu' 'jq'  'curl'
 }
 
 #
@@ -43,7 +48,7 @@ install_ileastic()
 
 {
 		# clone project
-		mkdir ILEastic && cd ILEastic
+		mkdir -m 775 ${ILEASTIC_ROOT} && cd ${ILEASTIC_ROOT}
 		git -c http.sslVerify=false clone --recurse-submodules https://github.com/sitemule/ILEastic.git		
 		cd ILEastic				
 
@@ -102,11 +107,64 @@ install_iws()
 install_cgi()
 
 {	
-		mkdir /www/${CGI_ROOT}; mkdir /www/${CGI_ROOT}/conf; mkdir /www/${CGI_ROOT}/htdocs; mkdir /www/${CGI_ROOT}/logs		
+		# mkdir -m 775 ${CGI_ROOT}; mkdir -m 775 ${CGI_ROOT}/conf; mkdir -m 775 ${CGI_ROOT}/htdocs; mkdir -m 775 ${CGI_ROOT}/logs		
+		# mkdir -m 775 ${CGI_ROOT}; mkdir -m 775 ${CGI_ROOT}/conf		
 
 		# build Compare for CGI und run CGI server
 		cd && cd si-ibmi-compare-webservices			
-		gmake build-cgi && system -Kp "STRTCPSVR SERVER(*HTTP) HTTPSVR(${CGI_ROOT}) "
+		gmake build-cgi && gmake run-cgi
+}
+
+#
+#		install_nodejs
+#
+
+
+install_nodejs()
+
+{	
+		yum -y install 'nodejs12'			
+		npm install -g pm2		
+}
+
+#
+#		install_php
+#
+
+
+install_php()
+
+{	
+		touch ${1}	
+		echo "[repos.zend.com_ibmiphp]" >> ${1}
+		echo "name=added from: http://repos.zend.com/ibmiphp" >> ${1}
+		echo "name=added from: http://repos.zend.com/ibmiphp" >> ${1}	
+		echo "baseurl=http://repos.zend.com/ibmiphp" >> ${1}	
+		echo "enabled=1" >> ${1}
+		yum repolist && yum -y install 'php-common' 'php-cli'			
+	
+		# build Compare for CGI und run CGI server
+		cd && cd si-ibmi-compare-webservices			
+		gmake build-php		
+		gmake run-php &
+	
+}
+
+#
+#		install_python
+#
+
+
+install_python()
+
+{	
+		yum -y install 'python3' 'python3-pip'	
+		pip3 install bottle		
+	
+		# build Compare for CGI und run CGI server
+		cd && cd si-ibmi-compare-webservices			
+		gmake build-python		
+		gmake run-python &
 }
 
 ################################################################################
@@ -124,7 +182,7 @@ fi
 
 # set path to OpenSource
 echo -e "\e[32msetting path to OpenSource ...\e[0m"
-export PATH=${OPENSRC_DIR}:$PATH
+export PATH=${PTH}:$PATH
 
 echo -e "\e[32minstalling dependencies for si-ibmi-compare-webservices ...\e[0m"
 install_dependencies
@@ -145,8 +203,16 @@ echo -e "\e[32m install and run IWS ...\e[0m"
 cd Apps
 
 echo -e "\e[32m install and run CGI ...\e[0m"
-install_cgi
+# install_cgi
 
+echo -e "\e[32m install nodejs ...\e[0m"
+# install_nodejs
+
+echo -e "\e[32m install PHP ...\e[0m"
+# install_php /QOpenSys/etc/yum/repos.d/repos.zend.com_ibmiphp.repo
+
+echo -e "\e[32m install PYTHON ...\e[0m"
+install_python
 
 echo -e "\e[32mDone. \e[0m"
 

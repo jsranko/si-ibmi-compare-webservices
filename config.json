@@ -1,15 +1,29 @@
 {
-	"library": {
-		"compareWebServices": "SICOMIIWS",
-		"ileastic" : "ILEASTIC"
-	},
-	"headers": {
-		"ileastic" : "Apps/ILEastic/ILEastic/headers",
-		"cgi": "CGISRV1"
+	"library" : "SICOMIIWS",
+	"paseCCSID" : 1208,
+	"path" : "/QOpenSys/pkgs/lib/nodejs12/bin:/QOpenSys/pkgs/bin",
+	"cgi" : {
+		"server" : "CGISRV1",
+		"dir" : "/www/cgisrv1",
+		"port": 44003
 	}, 
-	"port": {
-		"ileastic" : 44001,
-		"iws" : 44002,
-		"cgi" : 44003
+	"ileastic" : {
+		"dir" : "Apps/ILEastic",
+		"jobName" : "COMWSILEA",
+		"library" : "ILEASTIC",
+		"port": 44001,
+		"includeDir" : "Apps/ILEastic/ILEastic/headers"
+	},
+	"iws" : {
+		"port": 44002
+	},
+	"nodejs" : {
+		"port": 44004
+	},
+	"php" : {
+		"port": 44005
+	},
+	"python" : {
+		"port": 44006
 	}
 }
