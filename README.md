@@ -27,6 +27,6 @@ git clone https://github.com/jsranko/si-ibmi-compare-webservices.git
 ### Build project
 
 ```
-cd x
+cd si-ibmi-compare-webservices
 bash setup.sh
 ```
