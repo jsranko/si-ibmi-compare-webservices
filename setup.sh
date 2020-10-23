@@ -135,19 +135,22 @@ install_nodejs()
 install_php()
 
 {	
-		touch ${1}	
-		echo "[repos.zend.com_ibmiphp]" >> ${1}
-		echo "name=added from: http://repos.zend.com/ibmiphp" >> ${1}
-		echo "name=added from: http://repos.zend.com/ibmiphp" >> ${1}	
-		echo "baseurl=http://repos.zend.com/ibmiphp" >> ${1}	
-		echo "enabled=1" >> ${1}
-		yum repolist && yum -y install 'php-common' 'php-cli'			
+		if [ -f "${1}" ]; then
+			echo "${1} exists."    		
+		else
+			touch ${1}	
+			echo "[repos.zend.com_ibmiphp]" >> ${1}
+			echo "name=added from: http://repos.zend.com/ibmiphp" >> ${1}
+			echo "baseurl=http://repos.zend.com/ibmiphp" >> ${1}	
+			echo "enabled=1" >> ${1}
+			yum repolist
+		fi
+		yum -y install 'php-common' 'php-cli'			
 	
 		# build Compare for CGI und run CGI server
 		cd && cd si-ibmi-compare-webservices			
 		gmake build-php		
 		gmake run-php &
-	
 }
 
 #
@@ -165,6 +168,42 @@ install_python()
 		cd && cd si-ibmi-compare-webservices			
 		gmake build-python		
 		gmake run-python &
+}
+
+#
+#		install_mono
+#
+
+
+install_mono()
+
+{	
+		if [ -f "${1}" ]; then
+    		echo "${1} exists."    		
+		else
+			curl --insecure https://repo.qseco.fr/qsecofr.repo > /QOpenSys/etc/yum/repos.d/qsecofr.repo
+			yum repolist
+		fi
+		yum -y install 'mono-core'		
+
+		# build Compare for CGI und run CGI server
+		cd && cd si-ibmi-compare-webservices			
+		gmake build-mono		
+		gmake run-mono &
+
+}
+
+#
+#		install_spring
+#
+
+
+install_spring()
+
+{	
+		cd && cd si-ibmi-compare-webservices		
+		gmake build-spring		
+		gmake run-spring &
 }
 
 ################################################################################
@@ -212,7 +251,13 @@ echo -e "\e[32m install PHP ...\e[0m"
 # install_php /QOpenSys/etc/yum/repos.d/repos.zend.com_ibmiphp.repo
 
 echo -e "\e[32m install PYTHON ...\e[0m"
-install_python
+# install_python
+
+echo -e "\e[32m install MONO for C# ...\e[0m"
+# install_mono /QOpenSys/etc/yum/repos.d/qsecofr.repo
+
+echo -e "\e[32m install Java Spring Boot ...\e[0m"
+install_spring
 
 echo -e "\e[32mDone. \e[0m"
 

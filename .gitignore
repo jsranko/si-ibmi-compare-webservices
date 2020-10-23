@@ -3,7 +3,11 @@ Apps/*
 *.srcpf
 *.pgm
 *.jar
-src/main/QATMHINSTC/*.httpd
-src/main/QATMHINSTC/*.cgisrv
+*.httpd
+*.cgisrv
 *.bnddir
 *.cpysrc
+*.py
+*.php
+*.js
+*.cs

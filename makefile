@@ -1,6 +1,7 @@
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 DBGVIEW=*SOURCE
 LIBRARY:=$(shell jq '.library' -r ./config.json)
+IP:=$(shell jq '.ip' -r ./config.json)
 SHELL_CCSID:=$(shell jq '.paseCCSID' -r ./config.json)
 ILEASTIC_LIB:=$(shell jq '.ileastic.library' -r ./config.json)
 ILEASTIC_DIR:=$(shell jq '.ileastic.dir' -r ./config.json)
@@ -16,20 +17,26 @@ CGI_ROOT=$(CGI_DIR)
 NODEJS_PORT:=$(shell jq '.nodejs.port' -r ./config.json)
 PHP_PORT:=$(shell jq '.php.port' -r ./config.json)
 PYTHON_PORT:=$(shell jq '.python.port' -r ./config.json)
+MONO_PORT:=$(shell jq '.mono.port' -r ./config.json)
+SPRING_PORT:=$(shell jq '.springBoot.port' -r ./config.json)
+SPRING_JAR:=$(shell jq '.springBoot.jarWithDependencies' -r ./config.json)
 DIR_SRC=src/main
 DIR_RPG=$(DIR_SRC)/qrpglesrc
 DIR_CPY=$(DIR_SRC)/qcpylesrc
 DIR_IWSS=$(DIR_SRC)/qiwsssrc
-DIR_CGI=$(DIR_SRC)/QATMHINSTC
+DIR_CGI=$(DIR_SRC)/cgi
 DIR_NODEJS=$(DIR_SRC)/js
 DIR_PHP=$(DIR_SRC)/php
 DIR_PYTHON=$(DIR_SRC)/python
+DIR_MONO=$(DIR_SRC)/mono
+DIR_SPRING=$(DIR_SRC)/java/hello-spring-boot
 EXT_RPG=rpgle
 EXT_CPY=rpgle
 EXT_IWSS=iwss
 EXT_IWSSCONF=iwssconf
-JAR_SINGLE=$(ROOT_DIR)/Apps/si-iws-builder/IWSBuilder/target/si-iws-builder-jar-with-dependencies.jar
-JAR_CLASSNAME=de.sranko_informatik.ibmi.iwsbuilder.App
+IWSBUILDER_CP=$(ROOT_DIR)/Apps/si-iws-builder/IWSBuilder/target/si-iws-builder-jar-with-dependencies.jar
+IWSBUILDER_CLASSNAME=de.sranko_informatik.ibmi.iwsbuilder.App
+SPRING_CP=$(DIR_SPRING)/target/$(SPRING_JAR)
 
 SRCFILES_0=\
 	$(DIR_RPG) \
@@ -55,17 +62,20 @@ CGI_PGMS=\
 	$(patsubst %.rpgle,%.pgm,$(shell grep -il "cgi" $(DIR_RPG)/*.$(EXT_RPG)))
 
 CGI_CONF=\
-	$(patsubst %.conf,%.httpd,$(wildcard $(DIR_CGI)/*.conf)) \
-	$(patsubst %.srv,%.cgisrv,$(wildcard $(DIR_CGI)/*.srv))
+	$(patsubst %.confsrc,%.httpd,$(wildcard $(DIR_CGI)/*.confsrc)) \
+	$(patsubst %.cgisrc,%.cgi,$(wildcard $(DIR_CGI)/*.cgisrc))
 
 NODEJS_PGMS=\
-	$(patsubst %.js,%.nodejs,$(wildcard $(DIR_NODEJS)/*.js))
+	$(patsubst %.jssrc,%.js,$(wildcard $(DIR_NODEJS)/*.jssrc))
 
 PHP_PGMS=\
 	$(patsubst %.phpsrc,%.php,$(wildcard $(DIR_PHP)/*.phpsrc))
 
 PYTHON_PGMS=\
 	$(patsubst %.pysrc,%.py,$(wildcard $(DIR_PYTHON)/*.pysrc))
+
+MONO_PGMS=\
+	$(patsubst %.cssrc,%.cs,$(wildcard $(DIR_MONO)/*.cssrc))
 	
 # SHELL=/QOpenSys/usr/bin/qsh
 
@@ -79,6 +89,7 @@ all: core \
 	build-nodejs \
 	build-php \
 	build-python \
+	build-mono \
 	build-iws
 
 core: $(LIBRARY).lib \
@@ -110,6 +121,12 @@ build-php: core \
 build-python: core \
 	$(PYTHON_PGMS)
 
+build-mono: core \
+	$(MONO_PGMS)
+
+build-spring: \
+	$(shell mvn -f $(DIR_SPRING)/pom.xml clean assembly:single)
+
 run-ileastic:
 	liblist -a $(ILEASTIC_LIB); liblist -a $(LIBRARY); \
 	system -Kp "SBMJOB CMD(CALL PGM($(LIBRARY)/ILEASRV1)) JOB($(ILEASTIC_JOB)) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)"
@@ -123,12 +140,20 @@ run-nodejs:
 	$(shell pm2 start $(NODEJS_PGMS))
 
 run-php:
-	echo "PHP is running 0.0.0.0:$(PHP_PORT) -t $(DIR_PHP)"
-	$(shell sh -c "php -S 0.0.0.0:${PHP_PORT} -t ${PHP_DIR}")
+	echo "PHP is running $(IP):$(PHP_PORT) -t $(DIR_PHP)"
+	$(shell sh -c "php -S $(IP):${PHP_PORT} -t ${PHP_DIR}")
 
 run-python:
-	echo "PYTHON is running 0.0.0.0:$(PYTHON_PORT)/$(PYTHON_PGMS)"
+	echo "PYTHON is running $(IP):$(PYTHON_PORT)/$(PYTHON_PGMS)"
 	$(shell sh -c "python3 $(PYTHON_PGMS)")
+
+run-mono:
+	echo "MONO is running $(IP):$(MONO_PORT)/$(MONO_PGMS)"
+	$(shell sh -c "mono $(MONO_PGMS)")
+
+run-spring:
+	echo "Spring Boot is running $(IP):$(SPRING_PORT)"
+	$(shell java -jar $(SPRING_CP) --server.port=$(SPRING_PORT))
 
 display-vars: 
 	$(info    LIBRARY is $(LIBRARY))
@@ -151,6 +176,7 @@ display-vars:
 	$(info    NODEJS_PGMS is $(NODEJS_PGMS))
 	$(info    PHP_PGMS is $(PHP_PGMS))
 	$(info    PYTHON_PGMS is $(PYTHON_PGMS))
+	$(info    MONO_PGMS is $(MONO_PGMS))
 
 %.lib: 
 	(system -Kp "CHKOBJ $* *LIB" || system -Kp "CRTLIB $* TEXT('$(LIBRARY_DESC)')") && \
@@ -179,8 +205,8 @@ display-vars:
 
 %.$(EXT_IWSSCONF): %.$(EXT_IWSS)
 	$(call substitute,$*.$(EXT_IWSS),$@)
-	# java $(JAVA_DEBUG) -cp $(JAR_SINGLE) $(JAR_CLASSNAME) ./$@ && \
-	java -cp $(JAR_SINGLE) $(JAR_CLASSNAME) ./$@ && \
+	# java $(JAVA_DEBUG) -cp $(IWSBUILDER_CP) $(IWSBUILDER_CLASSNAME) ./$@ && \
+	java -cp $(IWSBUILDER_CP) $(IWSBUILDER_CLASSNAME) ./$@ && \
 	$(call copy_to_srcpf,$(ROOT_DIR)/$@,$(LIBRARY),$(notdir $(DIR_IWSS)),$(notdir $*))
 
 %.httpd: %.conf
@@ -189,22 +215,22 @@ display-vars:
 	# cp $@ $(CGI_ROOT)/conf/$(notdir $<) && chmod 775 $(CGI_ROOT)/conf/$(notdir $<)
 
 %.cgisrv: %.srv
-	# @echo "$$@=$@ $$%=$% $$<=$< $$?=$? $$^=$^ $$+=$+ $$|=$| $$*=$*"
 	$(call substitute,$*.srv,$@)
 	-system -Kp "ADDPFM FILE(QUSRSYS/$(notdir $(DIR_CGI))) MBR($(notdir $*))"
 	system -Kp "CPYFRMIMPF FROMSTMF('$(ROOT_DIR)/$@') TOFILE(QUSRSYS/$(notdir $(DIR_CGI)) $(notdir $*)) MBROPT(*REPLACE) RCDDLM(*CRLF)"
 
-%.nodejs: %.js
-	# @echo "$$@=$@ $$%=$% $$<=$< $$?=$? $$^=$^ $$+=$+ $$|=$| $$*=$*"
+%.js: %.jssrc
 	$(call substitute,$*.js,$@)
 
 %.php: %.phpsrc
-	# @echo "$$@=$@ $$%=$% $$<=$< $$?=$? $$^=$^ $$+=$+ $$|=$| $$*=$*"
 	$(call substitute,$*.phpsrc,$@)
 
 %.py: %.pysrc
-	# @echo "$$@=$@ $$%=$% $$<=$< $$?=$? $$^=$^ $$+=$+ $$|=$| $$*=$*"
 	$(call substitute,$*.pysrc,$@)
+
+%.cs: %.cssrc
+	# @echo "$$@=$@ $$%=$% $$<=$< $$?=$? $$^=$^ $$+=$+ $$|=$| $$*=$*"
+	$(call substitute,$*.cssrc,$@)
 
 clean: 
 	-rm $(LIBRARY).lib
@@ -218,6 +244,7 @@ clean:
 	-rm $(DIR_SRC)/$(notdir $(DIR_NODEJS))/*.nodejs
 	-rm $(DIR_SRC)/$(notdir $(PHP_PGMS))/*.php
 	-rm $(DIR_SRC)/$(notdir $(PYTHON_PGMS))/*.py
+	-rm $(DIR_SRC)/$(notdir $(MONO_PGMS))/*.cs
 	#-rm -r $(CGI_ROOT)
 	-rm -r $(ILEASTIC_ROOT)
 
@@ -229,5 +256,5 @@ endef
 define substitute
 	-rm $(2)
 	export QIBM_CCSID=$(SHELL_CCSID) && touch $(2) && \
-	sed 's/$$(PYTHON_PORT)/$(PYTHON_PORT)/g; s/$$(NODEJS_PORT)/$(NODEJS_PORT)/g; s/$$(CGI_ROOT)/$(subst /,\/,$(CGI_ROOT))/g; s/$$(CGI_PORT)/$(CGI_PORT)/g; s/$$(LIBRARY)/$(LIBRARY)/g; s/$$(IWS_PORT)/$(IWS_PORT)/g; s/$$(ILEASTIC_LIB)/$(ILEASTIC_LIB)/g; s/$$(ILEASTIC_HEADERS)/$(subst /,\/,$(ILEASTIC_HEADERS))/g; s/$$(ROOT_DIR)/$(subst /,\/,$(ROOT_DIR))/g; s/$$(ILEASTIC_PORT)/$(ILEASTIC_PORT)/g' $(1) >> $(2)
+	sed 's/$$(MONO_PORT)/$(MONO_PORT)/g; s/$$(IP)/$(IP)/g; s/$$(PYTHON_PORT)/$(PYTHON_PORT)/g; s/$$(NODEJS_PORT)/$(NODEJS_PORT)/g; s/$$(CGI_ROOT)/$(subst /,\/,$(CGI_ROOT))/g; s/$$(CGI_PORT)/$(CGI_PORT)/g; s/$$(LIBRARY)/$(LIBRARY)/g; s/$$(IWS_PORT)/$(IWS_PORT)/g; s/$$(ILEASTIC_LIB)/$(ILEASTIC_LIB)/g; s/$$(ILEASTIC_HEADERS)/$(subst /,\/,$(ILEASTIC_HEADERS))/g; s/$$(ROOT_DIR)/$(subst /,\/,$(ROOT_DIR))/g; s/$$(ILEASTIC_PORT)/$(ILEASTIC_PORT)/g' $(1) >> $(2)
 endef	

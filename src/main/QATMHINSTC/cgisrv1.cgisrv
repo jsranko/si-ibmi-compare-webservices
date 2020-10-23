@@ -1,1 +1,0 @@
--apache -d /www/CGISRV1 -f conf/httpd.conf -AutoStart Y

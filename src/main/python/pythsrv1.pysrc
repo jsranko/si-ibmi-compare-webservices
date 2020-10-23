@@ -6,4 +6,4 @@ from bottle import route, run
 def hello():
     return "Hello from Python"
     
-run(host='0.0.0.0', port=$(PYTHON_PORT))
+run(host=$(IP), port=$(PYTHON_PORT))

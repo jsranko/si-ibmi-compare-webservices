@@ -1,6 +1,7 @@
 {
 	"library" : "SICOMIIWS",
 	"paseCCSID" : 1208,
+	"ip" : "0.0.0.0",
 	"path" : "/QOpenSys/pkgs/lib/nodejs12/bin:/QOpenSys/pkgs/bin",
 	"cgi" : {
 		"server" : "CGISRV1",
@@ -25,5 +26,12 @@
 	},
 	"python" : {
 		"port": 44006
+	},
+	"mono" : {
+		"port": 44007
+	},
+	"springBoot" : {
+		"port": 44008,
+		"jarWithDependencies" : "hello-spring-boot-jar-with-dependencies.jar"
 	}
 }
