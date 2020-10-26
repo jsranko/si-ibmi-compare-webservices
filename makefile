@@ -76,6 +76,9 @@ PYTHON_PGMS=\
 
 MONO_PGMS=\
 	$(patsubst %.cssrc,%.cs,$(wildcard $(DIR_MONO)/*.cssrc))
+
+SPRING_CFGS=\
+	$(patsubst %.propertiessrc,%.properties,$(wildcard $(DIR_SPRING)/*.propertiessrc))
 	
 # SHELL=/QOpenSys/usr/bin/qsh
 
@@ -125,6 +128,7 @@ build-mono: core \
 	$(MONO_PGMS)
 
 build-spring: \
+	$(SPRING_CFGS) \
 	$(shell mvn -f $(DIR_SPRING)/pom.xml clean assembly:single)
 
 run-ileastic:
@@ -153,7 +157,8 @@ run-mono:
 
 run-spring:
 	echo "Spring Boot is running $(IP):$(SPRING_PORT)"
-	$(shell java -jar $(SPRING_CP) --server.port=$(SPRING_PORT))
+	# $(shell java -jar $(SPRING_CP) --server.port=$(SPRING_PORT))
+	$(shell mvn -f $(DIR_SPRING)/pom.xml spring-boot:run -Dserver.port=$(SPRING_PORT))
 
 display-vars: 
 	$(info    LIBRARY is $(LIBRARY))
@@ -177,6 +182,7 @@ display-vars:
 	$(info    PHP_PGMS is $(PHP_PGMS))
 	$(info    PYTHON_PGMS is $(PYTHON_PGMS))
 	$(info    MONO_PGMS is $(MONO_PGMS))
+	$(info    SPRING_CFGS is $(SPRING_CFGS))
 
 %.lib: 
 	(system -Kp "CHKOBJ $* *LIB" || system -Kp "CRTLIB $* TEXT('$(LIBRARY_DESC)')") && \
@@ -229,8 +235,11 @@ display-vars:
 	$(call substitute,$*.pysrc,$@)
 
 %.cs: %.cssrc
-	# @echo "$$@=$@ $$%=$% $$<=$< $$?=$? $$^=$^ $$+=$+ $$|=$| $$*=$*"
 	$(call substitute,$*.cssrc,$@)
+
+%.properties: %.propertiessrc
+	# @echo "$$@=$@ $$%=$% $$<=$< $$?=$? $$^=$^ $$+=$+ $$|=$| $$*=$*"
+	$(call substitute,$*.propertiessrc,$@)
 
 clean: 
 	-rm $(LIBRARY).lib
@@ -256,5 +265,5 @@ endef
 define substitute
 	-rm $(2)
 	export QIBM_CCSID=$(SHELL_CCSID) && touch $(2) && \
-	sed 's/$$(MONO_PORT)/$(MONO_PORT)/g; s/$$(IP)/$(IP)/g; s/$$(PYTHON_PORT)/$(PYTHON_PORT)/g; s/$$(NODEJS_PORT)/$(NODEJS_PORT)/g; s/$$(CGI_ROOT)/$(subst /,\/,$(CGI_ROOT))/g; s/$$(CGI_PORT)/$(CGI_PORT)/g; s/$$(LIBRARY)/$(LIBRARY)/g; s/$$(IWS_PORT)/$(IWS_PORT)/g; s/$$(ILEASTIC_LIB)/$(ILEASTIC_LIB)/g; s/$$(ILEASTIC_HEADERS)/$(subst /,\/,$(ILEASTIC_HEADERS))/g; s/$$(ROOT_DIR)/$(subst /,\/,$(ROOT_DIR))/g; s/$$(ILEASTIC_PORT)/$(ILEASTIC_PORT)/g' $(1) >> $(2)
+	sed 's/$$(SPRING_PORT)/$(SRPING_PORT)/g; s/$$(MONO_PORT)/$(MONO_PORT)/g; s/$$(IP)/$(IP)/g; s/$$(PYTHON_PORT)/$(PYTHON_PORT)/g; s/$$(NODEJS_PORT)/$(NODEJS_PORT)/g; s/$$(CGI_ROOT)/$(subst /,\/,$(CGI_ROOT))/g; s/$$(CGI_PORT)/$(CGI_PORT)/g; s/$$(LIBRARY)/$(LIBRARY)/g; s/$$(IWS_PORT)/$(IWS_PORT)/g; s/$$(ILEASTIC_LIB)/$(ILEASTIC_LIB)/g; s/$$(ILEASTIC_HEADERS)/$(subst /,\/,$(ILEASTIC_HEADERS))/g; s/$$(ROOT_DIR)/$(subst /,\/,$(ROOT_DIR))/g; s/$$(ILEASTIC_PORT)/$(ILEASTIC_PORT)/g' $(1) >> $(2)
 endef	

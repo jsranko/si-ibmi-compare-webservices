@@ -36,7 +36,7 @@ exist_directory()
 install_dependencies()
 
 {	
-		yum -y install 'git' 'make-gnu' 'jq'  'curl'
+		yum -y install 'git' 'make-gnu' 'jq'  'curl' 'unzip'
 }
 
 #
@@ -206,6 +206,19 @@ install_spring()
 		gmake run-spring &
 }
 
+#
+#install_icebreak
+#
+
+
+install_icebreak()
+
+{	
+		wget --user-agent="Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0" http://webfiles.system-method.com/download/IceBreak/IceBreakSetup0558.exe	
+		unzip IceBreakSetup0558.exe -x LoadRun.exe
+}
+
+
 ################################################################################
 #
 #                               Main
@@ -257,7 +270,10 @@ echo -e "\e[32m install MONO for C# ...\e[0m"
 # install_mono /QOpenSys/etc/yum/repos.d/qsecofr.repo
 
 echo -e "\e[32m install Java Spring Boot ...\e[0m"
-install_spring
+# install_spring
+
+echo -e "\e[32m install IceBreak ...\e[0m"
+install_icebreak
 
 echo -e "\e[32mDone. \e[0m"
 
