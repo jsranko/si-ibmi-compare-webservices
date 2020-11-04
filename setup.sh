@@ -41,7 +41,7 @@ exist_directory()
 install_dependencies()
 
 {	
-		yum -y install 'git' 'make-gnu' 'jq'  'curl' 'unzip' 'maven' 'nodejs12'	
+		yum -y install 'git' 'make-gnu' 'jq'  'curl' 'unzip' 'maven' 'nodejs12'	'python3' 'python3-pip'	
 }
 
 #
@@ -168,7 +168,6 @@ install_php()
 install_python()
 
 {	
-		yum -y install 'python3' 'python3-pip'	
 		pip3 install bottle		
 	
 		# build Compare for CGI und run CGI server
@@ -221,8 +220,9 @@ install_spring()
 install_icebreak()
 
 {	
+		cd ${APPS_DIR}
 		wget --user-agent="Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0" http://webfiles.system-method.com/download/IceBreak/IceBreakSetup0558.exe	
-		unzip IceBreakSetup0558.exe -x LoadRun.exe
+		unzip IceBreakSetup0558.exe -x LoadRun.exe && rm IceBreakSetup0558.exe
 }
 
 
