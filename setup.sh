@@ -1,13 +1,18 @@
 #!/bin/bash
 
+APPS_DIR=$PWD/Apps/
 PTH==$(jq '.path' -r ./config.json)
 ILEASTIC_LIB=$(jq '.ileastic.library' -r ./config.json)
 ILEASTIC_DIR=$(jq '.ileastic.dir' -r ./config.json)
-ILEASTIC_ROOT=$PWD/${ILEASTIC_DIR}
+ILEASTIC_ROOT=${APPS_DIR}/${ILEASTIC_DIR}
+IWS_DIR=$(jq '.iws.dir' -r ./config.json)
+IWS_ROOT=${APPS_DIR}/${IWS_DIR}
+
 CGI_DIR=$(jq '.cgi.dir' -r ./config.json)
 CGI_ROOT=${CGI_DIR}
 PHP_PORT=$(jq '.php.port' -r ./config.json)
 PHP_DIR=./src/main/php
+
 
 ################################################################################
 #
@@ -36,7 +41,7 @@ exist_directory()
 install_dependencies()
 
 {	
-		yum -y install 'git' 'make-gnu' 'jq'  'curl' 'unzip'
+		yum -y install 'git' 'make-gnu' 'jq'  'curl' 'unzip' 'maven' 'nodejs12'	
 }
 
 #
@@ -47,10 +52,11 @@ install_dependencies()
 install_ileastic()
 
 {
+		cd ${APPS_DIR}
 		# clone project
 		mkdir -m 775 ${ILEASTIC_ROOT} && cd ${ILEASTIC_ROOT}
 		git -c http.sslVerify=false clone --recurse-submodules https://github.com/sitemule/ILEastic.git		
-		cd ILEastic				
+		cd ${ILEASTIC_ROOT}				
 
 		# build noxdb
 		cd noxdb && gmake BIN_LIB=${ILEASTIC_LIB} && cd ..			
@@ -88,9 +94,10 @@ run_ileastic()
 install_iws()
 
 {		
+		cd ${APPS_DIR}
 		# clone and build project
 		git -c http.sslVerify=false clone https://github.com/jsranko/si-iws-builder.git		
-		cd si-iws-builder/IWSBuilder		
+		cd /${IWS_DIR}	
 		mvn clean verify assembly:single		
 
 		# build Compare for ILEastic
@@ -107,12 +114,13 @@ install_iws()
 install_cgi()
 
 {	
+		cd ${APPS_DIR}
 		# mkdir -m 775 ${CGI_ROOT}; mkdir -m 775 ${CGI_ROOT}/conf; mkdir -m 775 ${CGI_ROOT}/htdocs; mkdir -m 775 ${CGI_ROOT}/logs		
 		# mkdir -m 775 ${CGI_ROOT}; mkdir -m 775 ${CGI_ROOT}/conf		
 
 		# build Compare for CGI und run CGI server
 		cd && cd si-ibmi-compare-webservices			
-		gmake build-cgi && gmake run-cgi
+		gmake build-cgi && gmake run-cgi 
 }
 
 #
@@ -122,8 +130,7 @@ install_cgi()
 
 install_nodejs()
 
-{	
-		yum -y install 'nodejs12'			
+{				
 		npm install -g pm2		
 }
 
@@ -232,6 +239,12 @@ else
     echo -e "\e[32mPlease install 5733-OPS product first.\e[0m"
 fi
 
+if exist_directory "Apps";  then
+	echo "Directory Apps exists."
+else 
+	mkdir ${APPS_DIR}
+fi
+
 # set path to OpenSource
 echo -e "\e[32msetting path to OpenSource ...\e[0m"
 export PATH=${PTH}:$PATH
@@ -239,38 +252,40 @@ export PATH=${PTH}:$PATH
 echo -e "\e[32minstalling dependencies for si-ibmi-compare-webservices ...\e[0m"
 install_dependencies
 
-cd Apps
-
 echo -e "\e[32m install ILEastic into lib: ${ILEASTIC_LIB} ...\e[0m"
-# install_ileastic
+if exist_directory "${ILEASTIC_ROOT}";  then
+	echo "Directory ${ILEASTIC_ROOT} exists."
+else 
+	install_ileastic
+fi
 
 echo -e "\e[32m run ILEastic server ...\e[0m"
-# run_ileastic
-
-cd Apps
+run_ileastic
 
 echo -e "\e[32m install and run IWS ...\e[0m"
-# install_iws
-
-cd Apps
+if exist_directory "${IWS_ROOT}";  then
+	echo "Directory ${IWS_ROOT} exists."
+else 
+	install_iws
+fi
 
 echo -e "\e[32m install and run CGI ...\e[0m"
-# install_cgi
+install_cgi
 
 echo -e "\e[32m install nodejs ...\e[0m"
-# install_nodejs
+install_nodejs
 
 echo -e "\e[32m install PHP ...\e[0m"
-# install_php /QOpenSys/etc/yum/repos.d/repos.zend.com_ibmiphp.repo
+install_php /QOpenSys/etc/yum/repos.d/repos.zend.com_ibmiphp.repo
 
 echo -e "\e[32m install PYTHON ...\e[0m"
-# install_python
+install_python
 
 echo -e "\e[32m install MONO for C# ...\e[0m"
-# install_mono /QOpenSys/etc/yum/repos.d/qsecofr.repo
+install_mono /QOpenSys/etc/yum/repos.d/qsecofr.repo
 
 echo -e "\e[32m install Java Spring Boot ...\e[0m"
-# install_spring
+install_spring
 
 echo -e "\e[32m install IceBreak ...\e[0m"
 install_icebreak

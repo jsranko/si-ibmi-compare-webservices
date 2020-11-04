@@ -9,13 +9,14 @@
 		"port": 44003
 	}, 
 	"ileastic" : {
-		"dir" : "Apps/ILEastic",
+		"dir" : "ILEastic",
 		"jobName" : "COMWSILEA",
 		"library" : "ILEASTIC",
 		"port": 44001,
 		"includeDir" : "Apps/ILEastic/ILEastic/headers"
 	},
 	"iws" : {
+		"dir": "si-iws-builder/IWSBuilder", 
 		"port": 44002
 	},
 	"nodejs" : {
