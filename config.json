@@ -33,13 +33,18 @@
 	},
 	"springBoot" : {
 		"port": 44008,
-		"jarWithDependencies" : "hello-spring-boot-jar-with-dependencies.jar"
+		"jarWithDependencies" : "hello-spring-boot-0.0.1-SNAPSHOT.jar"
 	},
 	"iceBreak" : {
 		"port": 44009,
 		"dir": "IceBreak",
+		"library" : "ICEBREAK",
 		"url": "http://webfiles.system-method.com/download/IceBreak/IceBreakSetup0558.exe",
 		"exeFile": "IceBreakSetup0558.exe",
 		"savfFile": "IceBreak.savf"
+	},
+	"ruby" : {
+		"port": 44010,
+		"dir": "Ruby"
 	}
 }

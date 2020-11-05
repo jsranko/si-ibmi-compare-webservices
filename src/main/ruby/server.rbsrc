@@ -1,0 +1,27 @@
+require 'socket'
+require 'time'
+
+server = TCPServer.open('$(IP)', $(RUBY_PORT))
+
+print "Server running on $(IP):$(RUBY_PORT)"
+
+while connection = server.accept
+  print "connection accepted"
+  
+  body = "Hello from ruby!"
+
+  head = "HTTP/1.1 200\r\n" \
+  "Date: #{Time.now.httpdate}\r\n" \
+  "Content-Length: #{body.length.to_s}\r\n" 
+
+  # 1
+  connection.write head
+
+  # 2
+  connection.write "\r\n"
+
+  # 3
+  connection.write body
+
+  connection.close 
+end

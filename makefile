@@ -21,6 +21,7 @@ MONO_PORT:=$(shell jq '.mono.port' -r ./config.json)
 SPRING_PORT:=$(shell jq '.springBoot.port' -r ./config.json)
 SPRING_JAR:=$(shell jq '.springBoot.jarWithDependencies' -r ./config.json)
 ICEBREAK_PORT:=$(shell jq '.iceBreak.port' -r ./config.json)
+RUBY_PORT:=$(shell jq '.ruby.port' -r ./config.json)
 DIR_SRC=src/main
 DIR_RPG=$(DIR_SRC)/qrpglesrc
 DIR_CPY=$(DIR_SRC)/qcpylesrc
@@ -31,6 +32,7 @@ DIR_PHP=$(DIR_SRC)/php
 DIR_PYTHON=$(DIR_SRC)/python
 DIR_MONO=$(DIR_SRC)/mono
 DIR_SPRING=$(DIR_SRC)/java/hello-spring-boot
+DIR_RUBY=$(DIR_SRC)/ruby
 EXT_RPG=rpgle
 EXT_CPY=rpgle
 EXT_IWSS=iwss
@@ -80,7 +82,10 @@ MONO_PGMS=\
 
 SPRING_CFGS=\
 	$(patsubst %.propertiessrc,%.properties,$(wildcard $(DIR_SPRING)/*.propertiessrc))
-	
+
+RUBY_PGMS=\
+	$(patsubst %.rbsrc,%.rb,$(wildcard $(DIR_RUBY)/*.rbsrc))
+
 # SHELL=/QOpenSys/usr/bin/qsh
 
 # Ensure that intermediate files created by rules chains don't get
@@ -132,10 +137,13 @@ build-mono: core \
 
 build-spring: \
 	$(SPRING_CFGS) \
-	$(shell mvn -f $(DIR_SPRING)/pom.xml clean assembly:single)
+	$(shell mvn -f $(DIR_SPRING)/pom.xml clean verify assembly:single)
 
 build-icebreak: \
 	$(info "IceBreak wird installiert")
+
+build-ruby: \
+	$(RUBY_PGMS)
 
 run-ileastic:
 	liblist -a $(ILEASTIC_LIB); liblist -a $(LIBRARY); \
@@ -163,10 +171,13 @@ run-mono:
 
 run-spring:
 	echo "Spring Boot is running $(IP):$(SPRING_PORT)"
-	$(shell mvn -f $(DIR_SPRING)/pom.xml spring-boot:run -Dserver.port=$(SPRING_PORT))
+	echo "$(shell java -jar $(SPRING_CP) --server.port=$(SPRING_PORT))"
 
 run-icebreak:
 	echo "IceBreak is running $(IP):$(ICEBREAK_PORT)"
+
+run-ruby:
+	$(shell /PowerRuby/prV2R4/bin/ruby $(RUBY_PGMS))
 
 display-vars: 
 	$(info    LIBRARY is $(LIBRARY))
@@ -193,6 +204,8 @@ display-vars:
 	$(info    SPRING_CFGS is $(SPRING_CFGS))
 	$(info    SPRING_PORT is $(SPRING_PORT))
 	$(info    SPRING_CP is $(SPRING_CP))
+	$(info    DIR_RUBY is $(DIR_RUBY))
+	$(info    RUBY_PGMS is $(RUBY_PGMS))
 
 %.lib: 
 	(system -Kp "CHKOBJ $* *LIB" || system -Kp "CRTLIB $* TEXT('$(LIBRARY_DESC)')") && \
@@ -251,6 +264,9 @@ display-vars:
 	# @echo "$$@=$@ $$%=$% $$<=$< $$?=$? $$^=$^ $$+=$+ $$|=$| $$*=$*"
 	$(call substitute,$*.propertiessrc,$@)
 
+%.rb: %.rbsrc
+	$(call substitute,$*.rbsrc,$@)
+	
 clean: 
 	-rm $(LIBRARY).lib
 	-rm $(LIBRARY).bnddir
@@ -264,6 +280,7 @@ clean:
 	-rm $(DIR_SRC)/$(notdir $(PHP_PGMS))/*.php
 	-rm $(DIR_SRC)/$(notdir $(PYTHON_PGMS))/*.py
 	-rm $(DIR_SRC)/$(notdir $(MONO_PGMS))/*.cs
+	-rm $(DIR_SRC)/$(notdir $(DIR_RUBY))/*.rb
 	#-rm -r $(CGI_ROOT)
 	-rm -r $(ILEASTIC_ROOT)
 
@@ -275,5 +292,5 @@ endef
 define substitute
 	-rm $(2)
 	export QIBM_CCSID=$(SHELL_CCSID) && touch $(2) && \
-	sed 's/$$(SPRING_PORT)/$(SRPING_PORT)/g; s/$$(MONO_PORT)/$(MONO_PORT)/g; s/$$(IP)/$(IP)/g; s/$$(PYTHON_PORT)/$(PYTHON_PORT)/g; s/$$(NODEJS_PORT)/$(NODEJS_PORT)/g; s/$$(CGI_ROOT)/$(subst /,\/,$(CGI_ROOT))/g; s/$$(CGI_PORT)/$(CGI_PORT)/g; s/$$(LIBRARY)/$(LIBRARY)/g; s/$$(IWS_PORT)/$(IWS_PORT)/g; s/$$(ILEASTIC_LIB)/$(ILEASTIC_LIB)/g; s/$$(ILEASTIC_HEADERS)/$(subst /,\/,$(ILEASTIC_HEADERS))/g; s/$$(ROOT_DIR)/$(subst /,\/,$(ROOT_DIR))/g; s/$$(ILEASTIC_PORT)/$(ILEASTIC_PORT)/g' $(1) >> $(2)
+	sed 's/$$(RUBY_PORT)/$(RUBY_PORT)/g; s/$$(SPRING_PORT)/$(SRPING_PORT)/g; s/$$(MONO_PORT)/$(MONO_PORT)/g; s/$$(IP)/$(IP)/g; s/$$(PYTHON_PORT)/$(PYTHON_PORT)/g; s/$$(NODEJS_PORT)/$(NODEJS_PORT)/g; s/$$(CGI_ROOT)/$(subst /,\/,$(CGI_ROOT))/g; s/$$(CGI_PORT)/$(CGI_PORT)/g; s/$$(LIBRARY)/$(LIBRARY)/g; s/$$(IWS_PORT)/$(IWS_PORT)/g; s/$$(ILEASTIC_LIB)/$(ILEASTIC_LIB)/g; s/$$(ILEASTIC_HEADERS)/$(subst /,\/,$(ILEASTIC_HEADERS))/g; s/$$(ROOT_DIR)/$(subst /,\/,$(ROOT_DIR))/g; s/$$(ILEASTIC_PORT)/$(ILEASTIC_PORT)/g' $(1) >> $(2)
 endef	
