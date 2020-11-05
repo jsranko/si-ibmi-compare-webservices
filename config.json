@@ -34,5 +34,12 @@
 	"springBoot" : {
 		"port": 44008,
 		"jarWithDependencies" : "hello-spring-boot-jar-with-dependencies.jar"
+	},
+	"iceBreak" : {
+		"port": 44009,
+		"dir": "IceBreak",
+		"url": "http://webfiles.system-method.com/download/IceBreak/IceBreakSetup0558.exe",
+		"exeFile": "IceBreakSetup0558.exe",
+		"savfFile": "IceBreak.savf"
 	}
 }

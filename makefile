@@ -20,6 +20,7 @@ PYTHON_PORT:=$(shell jq '.python.port' -r ./config.json)
 MONO_PORT:=$(shell jq '.mono.port' -r ./config.json)
 SPRING_PORT:=$(shell jq '.springBoot.port' -r ./config.json)
 SPRING_JAR:=$(shell jq '.springBoot.jarWithDependencies' -r ./config.json)
+ICEBREAK_PORT:=$(shell jq '.iceBreak.port' -r ./config.json)
 DIR_SRC=src/main
 DIR_RPG=$(DIR_SRC)/qrpglesrc
 DIR_CPY=$(DIR_SRC)/qcpylesrc
@@ -93,6 +94,8 @@ all: core \
 	build-php \
 	build-python \
 	build-mono \
+	build-spring \
+	build-icebreak \
 	build-iws
 
 core: $(LIBRARY).lib \
@@ -131,6 +134,9 @@ build-spring: \
 	$(SPRING_CFGS) \
 	$(shell mvn -f $(DIR_SPRING)/pom.xml clean assembly:single)
 
+build-icebreak: \
+	$(info "IceBreak wird installiert")
+
 run-ileastic:
 	liblist -a $(ILEASTIC_LIB); liblist -a $(LIBRARY); \
 	system -Kp "SBMJOB CMD(CALL PGM($(LIBRARY)/ILEASRV1)) JOB($(ILEASTIC_JOB)) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)"
@@ -157,8 +163,10 @@ run-mono:
 
 run-spring:
 	echo "Spring Boot is running $(IP):$(SPRING_PORT)"
-	# $(shell java -jar $(SPRING_CP) --server.port=$(SPRING_PORT))
 	$(shell mvn -f $(DIR_SPRING)/pom.xml spring-boot:run -Dserver.port=$(SPRING_PORT))
+
+run-icebreak:
+	echo "IceBreak is running $(IP):$(ICEBREAK_PORT)"
 
 display-vars: 
 	$(info    LIBRARY is $(LIBRARY))
@@ -183,6 +191,8 @@ display-vars:
 	$(info    PYTHON_PGMS is $(PYTHON_PGMS))
 	$(info    MONO_PGMS is $(MONO_PGMS))
 	$(info    SPRING_CFGS is $(SPRING_CFGS))
+	$(info    SPRING_PORT is $(SPRING_PORT))
+	$(info    SPRING_CP is $(SPRING_CP))
 
 %.lib: 
 	(system -Kp "CHKOBJ $* *LIB" || system -Kp "CRTLIB $* TEXT('$(LIBRARY_DESC)')") && \
