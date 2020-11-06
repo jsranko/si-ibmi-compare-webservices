@@ -1,28 +1,29 @@
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 DBGVIEW=*SOURCE
-LIBRARY:=$(shell jq '.library' -r ./config.json)
-IP:=$(shell jq '.ip' -r ./config.json)
-SHELL_CCSID:=$(shell jq '.paseCCSID' -r ./config.json)
-ILEASTIC_LIB:=$(shell jq '.ileastic.library' -r ./config.json)
-ILEASTIC_DIR:=$(shell jq '.ileastic.dir' -r ./config.json)
-ILEASTIC_HEADERS:=$(shell jq '.ileastic.includeDir' -r ./config.json)
-ILEASTIC_PORT:=$(shell jq '.ileastic.port' -r ./config.json)
-ILEASTIC_JOB:=$(shell jq '.ileastic.jobName' -r ./config.json)
+CONFIG_JSON:=$(shell jq '.' -r ./config.json)
+LIBRARY:=$(shell echo '$(CONFIG_JSON)' | jq '.library')
+IP:=$(shell echo '$(CONFIG_JSON)' | jq '.ip')
+SHELL_CCSID:=$(shell echo '$(CONFIG_JSON)' | jq '.paseCCSID')
+ILEASTIC_LIB:=$(shell echo '$(CONFIG_JSON)' | jq '.ileastic.library')
+ILEASTIC_DIR:=$(shell echo '$(CONFIG_JSON)' | jq '.ileastic.dir')
+ILEASTIC_HEADERS:=$(shell echo '$(CONFIG_JSON)' | jq '.ileastic.includeDir')
+ILEASTIC_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.ileastic.port'n)
+ILEASTIC_JOB:=$(shell echo '$(CONFIG_JSON)' | jq '.ileastic.jobName')
 ILEASTIC_ROOT=$(ROOT_DIR)/$(ILEASTIC_DIR)
-IWS_PORT:=$(shell jq '.iws.port' -r ./config.json)
-CGI_PORT:=$(shell jq '.cgi.port' -r ./config.json)
-CGI_DIR:=$(shell jq '.cgi.dir' -r ./config.json)
-CGI_SERVER:=$(shell jq '.cgi.server' -r ./config.json)
+IWS_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.iws.port')
+CGI_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.cgi.port')
+CGI_DIR:=$(shell echo '$(CONFIG_JSON)' | jq '.cgi.dir')
+CGI_SERVER:=$(shell echo '$(CONFIG_JSON)' | jq '.cgi.server'n)
 CGI_ROOT=$(CGI_DIR)
-NODEJS_PORT:=$(shell jq '.nodejs.port' -r ./config.json)
-PHP_PORT:=$(shell jq '.php.port' -r ./config.json)
-PYTHON_PORT:=$(shell jq '.python.port' -r ./config.json)
-MONO_PORT:=$(shell jq '.mono.port' -r ./config.json)
-SPRING_PORT:=$(shell jq '.springBoot.port' -r ./config.json)
-SPRING_JAR:=$(shell jq '.springBoot.jarWithDependencies' -r ./config.json)
-ICEBREAK_LIB:=$(shell jq '.iceBreak.library' -r ./config.json)
-ICEBREAK_PORT:=$(shell jq '.iceBreak.port' -r ./config.json)
-RUBY_PORT:=$(shell jq '.ruby.port' -r ./config.json)
+NODEJS_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.nodejs.port')
+PHP_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.php.port')
+PYTHON_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.python.port')
+MONO_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.mono.port')
+SPRING_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.springBoot.port')
+SPRING_JAR:=$(shell echo '$(CONFIG_JSON)' | jq '.springBoot.jarWithDependencies')
+ICEBREAK_LIB:=$(shell echo '$(CONFIG_JSON)' | jq '.iceBreak.library')
+ICEBREAK_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.iceBreak.port')
+RUBY_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.ruby.port')
 DIR_SRC=src/main
 DIR_RPG=$(DIR_SRC)/ileastic
 DIR_RPG=$(DIR_SRC)/qrpglesrc
@@ -242,17 +243,17 @@ display-vars:
 	java -cp $(IWSBUILDER_CP) $(IWSBUILDER_CLASSNAME) ./$@ && \
 	$(call copy_to_srcpf,$(ROOT_DIR)/$@,$(LIBRARY),$(notdir $(DIR_IWSS)),$(notdir $*))
 
-%.httpd: %.conf
-	$(call substitute,$*.conf,$@) 
-	cat $@
+%.confsrc: %.httpd
+	$(call substitute,$*.confsrc,$@) 
+	# cat $@
 	# cp $@ $(CGI_ROOT)/conf/$(notdir $<) && chmod 775 $(CGI_ROOT)/conf/$(notdir $<)
 
-%.cgisrv: %.srv
-	$(call substitute,$*.srv,$@)
+%.cgisrc: %.cgi
+	$(call substitute,$*.cgisrc,$@)
 	-system -Kp "ADDPFM FILE(QUSRSYS/$(notdir $(DIR_CGI))) MBR($(notdir $*))"
 	system -Kp "CPYFRMIMPF FROMSTMF('$(ROOT_DIR)/$@') TOFILE(QUSRSYS/$(notdir $(DIR_CGI)) $(notdir $*)) MBROPT(*REPLACE) RCDDLM(*CRLF)"
 
-%.js: %.jssrc
+%.jssrc: %.js
 	$(call substitute,$*.jssrc,$@)
 
 %.php: %.phpsrc

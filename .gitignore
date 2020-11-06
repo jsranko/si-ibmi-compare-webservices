@@ -4,7 +4,7 @@ Apps/*
 *.pgm
 *.jar
 *.httpd
-*.cgisrv
+*.cgisrc
 *.bnddir
 *.cpysrc
 *.py
