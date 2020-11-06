@@ -20,12 +20,14 @@ PYTHON_PORT:=$(shell jq '.python.port' -r ./config.json)
 MONO_PORT:=$(shell jq '.mono.port' -r ./config.json)
 SPRING_PORT:=$(shell jq '.springBoot.port' -r ./config.json)
 SPRING_JAR:=$(shell jq '.springBoot.jarWithDependencies' -r ./config.json)
+ICEBREAK_LIB:=$(shell jq '.iceBreak.library' -r ./config.json)
 ICEBREAK_PORT:=$(shell jq '.iceBreak.port' -r ./config.json)
 RUBY_PORT:=$(shell jq '.ruby.port' -r ./config.json)
 DIR_SRC=src/main
+DIR_RPG=$(DIR_SRC)/ileastic
 DIR_RPG=$(DIR_SRC)/qrpglesrc
 DIR_CPY=$(DIR_SRC)/qcpylesrc
-DIR_IWSS=$(DIR_SRC)/qiwsssrc
+DIR_IWSS=$(DIR_SRC)/iws
 DIR_CGI=$(DIR_SRC)/cgi
 DIR_NODEJS=$(DIR_SRC)/js
 DIR_PHP=$(DIR_SRC)/php
@@ -33,6 +35,7 @@ DIR_PYTHON=$(DIR_SRC)/python
 DIR_MONO=$(DIR_SRC)/mono
 DIR_SPRING=$(DIR_SRC)/java/hello-spring-boot
 DIR_RUBY=$(DIR_SRC)/ruby
+EXT_CLLE=clle
 EXT_RPG=rpgle
 EXT_CPY=rpgle
 EXT_IWSS=iwss
@@ -50,10 +53,11 @@ SRCFILES=\
 	$(SRCFILES_0:=.srcpf)
 
 ILEASTIC_PGMS=\
-	$(patsubst %.rpgle,%.pgm,$(shell grep -il "$(ILEASTIC_LIB)" $(DIR_RPG)/*.$(EXT_RPG)))
+	$(patsubst %.rpgle,%.pgm,$(wildcard $(DIR_ILEASTIC)/*.$(EXT_RPG))) \
+	$(patsubst %.clle,%.clpgm,$(wildcard $(DIR_ILEASTIC)/*.$(EXT_CLLE)))
 
 IWS_PGMS=\
-	$(patsubst %.rpgle,%.pgm,$(shell grep -il " pgminfo" $(DIR_RPG)/*.$(EXT_RPG)))
+	$(patsubst %.rpgle,%.pgm,$(wildcard $(DIR_IWS)/*.$(EXT_RPG)))
 
 CPYS:=\
 	$(patsubst %.$(EXT_CPY),%.cpysrc,$(wildcard $(DIR_CPY)/*.$(EXT_CPY)))
@@ -62,7 +66,7 @@ IWSS=\
 	$(patsubst %.$(EXT_IWSS),%.$(EXT_IWSSCONF),$(wildcard $(DIR_IWSS)/*.$(EXT_IWSS)))
 
 CGI_PGMS=\
-	$(patsubst %.rpgle,%.pgm,$(shell grep -il "cgi" $(DIR_RPG)/*.$(EXT_RPG)))
+	$(patsubst %.rpgle,%.pgm,$(wildcard $(DIR_CGI)/*.$(EXT_RPG)))
 
 CGI_CONF=\
 	$(patsubst %.confsrc,%.httpd,$(wildcard $(DIR_CGI)/*.confsrc)) \
@@ -140,7 +144,7 @@ build-spring: \
 	$(shell mvn -f $(DIR_SPRING)/pom.xml clean verify assembly:single)
 
 build-icebreak: \
-	$(info "IceBreak wird installiert")
+	
 
 build-ruby: \
 	$(RUBY_PGMS)
@@ -155,29 +159,29 @@ run-cgi:
 	# system -Kp "STRTCPSVR SERVER(*HTTP) HTTPSVR($(CGI_SERVER))"
 
 run-nodejs:
-	$(shell pm2 start $(NODEJS_PGMS))
+	echo "$(shell /QOpenSys/pkgs/lib/nodejs12/bin/pm2 start $(NODEJS_PGMS))"
 
 run-php:
 	echo "PHP is running $(IP):$(PHP_PORT) -t $(DIR_PHP)"
-	$(shell sh -c "php -S $(IP):${PHP_PORT} -t ${PHP_DIR}")
+	echo "$(shell php -S $(IP):${PHP_PORT} -t ${PHP_DIR})"
 
 run-python:
 	echo "PYTHON is running $(IP):$(PYTHON_PORT)/$(PYTHON_PGMS)"
-	$(shell sh -c "python3 $(PYTHON_PGMS)")
+	echo "$(shell python3 $(PYTHON_PGMS))"
 
 run-mono:
 	echo "MONO is running $(IP):$(MONO_PORT)/$(MONO_PGMS)"
-	$(shell sh -c "mono $(MONO_PGMS)")
+	echo "$(shell mono $(MONO_PGMS))"
 
 run-spring:
 	echo "Spring Boot is running $(IP):$(SPRING_PORT)"
 	echo "$(shell java -jar $(SPRING_CP) --server.port=$(SPRING_PORT))"
 
 run-icebreak:
-	echo "IceBreak is running $(IP):$(ICEBREAK_PORT)"
+	
 
 run-ruby:
-	$(shell /PowerRuby/prV2R4/bin/ruby $(RUBY_PGMS))
+	echo "$(shell /PowerRuby/prV2R4/bin/ruby $(RUBY_PGMS))"
 
 display-vars: 
 	$(info    LIBRARY is $(LIBRARY))
@@ -249,7 +253,7 @@ display-vars:
 	system -Kp "CPYFRMIMPF FROMSTMF('$(ROOT_DIR)/$@') TOFILE(QUSRSYS/$(notdir $(DIR_CGI)) $(notdir $*)) MBROPT(*REPLACE) RCDDLM(*CRLF)"
 
 %.js: %.jssrc
-	$(call substitute,$*.js,$@)
+	$(call substitute,$*.jssrc,$@)
 
 %.php: %.phpsrc
 	$(call substitute,$*.phpsrc,$@)
@@ -271,6 +275,8 @@ clean:
 	-rm $(LIBRARY).lib
 	-rm $(LIBRARY).bnddir
 	-system -Kp 'DLTLIB $(LIBRARY)'
+	-system -Kp 'DLTLIB $(ILEASTIC_LIB)'
+	-system -Kp 'DLTLIB $(ICEBREAK_LIB)'
 	-rm -f src/main/*.srcpf
 	-rm $(DIR_SRC)/$(notdir $(DIR_RPG))/*.pgm
 	-rm $(DIR_SRC)/$(notdir $(DIR_IWSS))/*.$(EXT_IWSSCONF)

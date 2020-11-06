@@ -129,7 +129,7 @@ install_iws()
 			# clone and build project
 			git -c http.sslVerify=false clone https://github.com/jsranko/si-iws-builder.git		
 		fi	
-		cd /${IWS_DIR}	
+		cd ${IWS_DIR}	
 		mvn clean verify assembly:single	
 
 		# build Compare for IWS Builder
@@ -165,7 +165,12 @@ install_nodejs()
 
 {	
 		echo -e "\e[32m install nodejs ...\e[0m"			
-		npm install -g pm2		
+		npm install -g pm2
+		
+		go_home		
+		gmake build-nodejs		
+		gmake run-nodejs &
+		
 }
 
 #
@@ -256,8 +261,8 @@ install_icebreak()
 		system -Kp "RSTOBJ OBJ(*ALL) SAVLIB(BLUEICE) DEV(*SAVF) SAVF(${LIBRARY}/ICEBREAK) RSTLIB(*SAVF)"
 		
 		go_home
-		gmake build-icebreak
-		gmake run-icebreak &
+		# gmake build-icebreak
+		# gmake run-icebreak &
 		echo -e "\e[32m install done.\e[0m"
 }
 
@@ -316,7 +321,7 @@ echo -e "\e[32minstalling dependencies for si-ibmi-compare-webservices ...\e[0m"
 install_dependencies
 
 if [[ $# -eq 0 ]]; then 
-	set -- --ileastic --iws --cgi --nodejs --php --python --mono --spring --icebreak --ruby
+	set -- --ileastic --iws --cgi --nodejs --php --python --spring --icebreak --ruby
 fi
 
 # Transform long options to short ones

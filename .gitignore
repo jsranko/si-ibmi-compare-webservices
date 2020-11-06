@@ -11,3 +11,5 @@ Apps/*
 *.php
 *.js
 *.cs
+*.rb
+*.iwssconf
