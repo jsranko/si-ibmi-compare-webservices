@@ -1,0 +1,48 @@
+#!/usr/bin/python
+
+from bottle import route, run, request, response
+import json
+
+
+def getFileName(fileName, configurationFile):
+
+    # read file
+
+    with open(configurationFile, 'r') as myfile:
+        data = myfile.read()
+
+            # parse file
+
+        rootNode = json.loads(data)
+
+           # show values
+
+    file = rootNode['files'][fileName]
+    return file
+
+
+def getFileData(fileName):
+    with open(fileName, 'r') as myfile:
+        data = myfile.read()
+    rootNode = json.loads(data)
+    json_string = json.dumps(rootNode)
+    return json_string
+
+
+@route('/', method='GET')
+def hello():
+    fileSize = request.query['fileSize']
+    response.content_type = 'application/json'
+    data = '{"error" : "Filesize not found."}'
+
+    try:
+        fileName = getFileName(fileSize, 'config.json')
+    except Exception:
+        return data
+
+    if fileName != '':
+        data = getFileData(fileName)
+
+    return data
+    
+run(host="$(IP)", port=$(PYTHON_PORT))

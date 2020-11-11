@@ -1,29 +1,32 @@
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 DBGVIEW=*SOURCE
 CONFIG_JSON:=$(shell jq '.' -r ./config.json)
-LIBRARY:=$(shell echo '$(CONFIG_JSON)' | jq '.library')
-IP:=$(shell echo '$(CONFIG_JSON)' | jq '.ip')
-SHELL_CCSID:=$(shell echo '$(CONFIG_JSON)' | jq '.paseCCSID')
-ILEASTIC_LIB:=$(shell echo '$(CONFIG_JSON)' | jq '.ileastic.library')
-ILEASTIC_DIR:=$(shell echo '$(CONFIG_JSON)' | jq '.ileastic.dir')
-ILEASTIC_HEADERS:=$(shell echo '$(CONFIG_JSON)' | jq '.ileastic.includeDir')
-ILEASTIC_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.ileastic.port'n)
-ILEASTIC_JOB:=$(shell echo '$(CONFIG_JSON)' | jq '.ileastic.jobName')
+LIBRARY:=$(shell jq '.library' -r ./config.json)
+IP:=$(shell jq '.ip' -r ./config.json)
+SHELL_CCSID:=$(shell jq '.paseCCSID' -r ./config.json)
+ILEASTIC_LIB:=$(shell jq '.ileastic.library' -r ./config.json)
+ILEASTIC_DIR:=$(shell jq '.ileastic.dir' -r ./config.json)
+ILEASTIC_HEADERS:=$(shell jq '.ileastic.includeDir' -r ./config.json)
+ILEASTIC_PORT:=$(shell jq '.ileastic.port' -r ./config.json)
+ILEASTIC_JOB:=$(shell jq '.ileastic.jobName' -r ./config.json)
 ILEASTIC_ROOT=$(ROOT_DIR)/$(ILEASTIC_DIR)
-IWS_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.iws.port')
-CGI_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.cgi.port')
-CGI_DIR:=$(shell echo '$(CONFIG_JSON)' | jq '.cgi.dir')
-CGI_SERVER:=$(shell echo '$(CONFIG_JSON)' | jq '.cgi.server'n)
+IWS_PORT:=$(shell jq '.iws.port' -r ./config.json)
+CGI_PORT:=$(shell jq '.cgi.port' -r ./config.json)
+CGI_DIR:=$(shell jq '.cgi.dir' -r ./config.json)
+CGI_SERVER:=$(shell jq '.cgi.server' -r ./config.json)
 CGI_ROOT=$(CGI_DIR)
-NODEJS_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.nodejs.port')
-PHP_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.php.port')
-PYTHON_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.python.port')
-MONO_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.mono.port')
-SPRING_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.springBoot.port')
-SPRING_JAR:=$(shell echo '$(CONFIG_JSON)' | jq '.springBoot.jarWithDependencies')
-ICEBREAK_LIB:=$(shell echo '$(CONFIG_JSON)' | jq '.iceBreak.library')
-ICEBREAK_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.iceBreak.port')
-RUBY_PORT:=$(shell echo '$(CONFIG_JSON)' | jq '.ruby.port')
+NODEJS_PORT:=$(shell jq '.nodejs.port' -r ./config.json)
+PHP_PORT:=$(shell jq '.php.port' -r ./config.json)
+PYTHON_PORT:=$(shell jq '.python.port' -r ./config.json)
+MONO_PORT:=$(shell jq '.mono.port' -r ./config.json)
+SPRING_PORT:=$(shell jq '.springBoot.port' -r ./config.json)
+SPRING_JAR:=$(shell jq '.springBoot.jarWithDependencies' -r ./config.json)
+ICEBREAK_LIB:=$(shell jq '.iceBreak.library' -r ./config.json)
+ICEBREAK_PORT:=$(shell jq '.iceBreak.port' -r ./config.json)
+RUBY_PORT:=$(shell jq '.ruby.port' -r ./config.json)
+RUBY_INST_DIR:=$(shell jq '.ruby.installDir' -r ./config.json)
+RUBY_GEMS_DIR:=$(shell jq '.ruby.gemsets' -r ./config.json)
+RUBY_GEMS_PATH:=$(shell jq '.ruby.gemPath' -r ./config.json)
 DIR_SRC=src/main
 DIR_RPG=$(DIR_SRC)/ileastic
 DIR_RPG=$(DIR_SRC)/qrpglesrc
@@ -128,16 +131,16 @@ build-iws: core \
 	$(IWS_PGMS) \
 	$(IWSS)
 
-build-nodejs: core \
+build-nodejs: \
 	$(NODEJS_PGMS)
 
-build-php: core \
+build-php: \
 	$(PHP_PGMS)
 
-build-python: core \
+build-python: \
 	$(PYTHON_PGMS)
 
-build-mono: core \
+build-mono: \
 	$(MONO_PGMS)
 
 build-spring: \
@@ -164,7 +167,7 @@ run-nodejs:
 
 run-php:
 	echo "PHP is running $(IP):$(PHP_PORT) -t $(DIR_PHP)"
-	echo "$(shell php -S $(IP):${PHP_PORT} -t ${PHP_DIR})"
+	echo "$(shell php -S $(IP):${PHP_PORT} -t ${DIR_PHP})"
 
 run-python:
 	echo "PYTHON is running $(IP):$(PYTHON_PORT)/$(PYTHON_PGMS)"
@@ -182,7 +185,11 @@ run-icebreak:
 	
 
 run-ruby:
-	echo "$(shell /PowerRuby/prV2R4/bin/ruby $(RUBY_PGMS))"
+	# export GEM_HOME=$(HOME)/$(RUBY_GEMS_DIR)
+	# export GEM_PATH=$(RUBY_GEMS_PATH):$(GEM_HOME)
+	# $(info    GEM_HOME is $(GEM_HOME))
+	# $(info    GEM_PATH is $(GEM_PATH))
+	echo "$(shell $(RUBY_INST_DIR)/ruby $(DIR_RUBY)/server.rb)"
 
 display-vars: 
 	$(info    LIBRARY is $(LIBRARY))

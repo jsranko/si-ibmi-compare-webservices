@@ -1,0 +1,5 @@
+CONFIG_JSON:=$(shell jq '.' ./config.json)
+LIBRARY:=$(shell echo '$(CONFIG_JSON)' | jq '.library')
+
+all:
+	$(info $(LIBRARY))

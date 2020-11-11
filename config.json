@@ -45,6 +45,15 @@
 	},
 	"ruby" : {
 		"port": 44010,
-		"dir": "Ruby"
+		"dir": "Ruby",
+		"installDir" : "/PowerRuby/prV2R4/bin",
+		"gemsets" : "gemsets/sinatra_ibm_db",
+		"gemPath" : "/PowerRuby/prV2R4/lib/ruby/gems/2.4.0/"
+	},
+	"files" : { 
+		"1k" : "resources/data_1k.json", 
+		"10k" : "resources/data_10k.json",
+		"100k" : "resources/data_100k.json",
+		"1000k" : "resources/data_1000k.json"
 	}
 }

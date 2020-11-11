@@ -1,0 +1,8 @@
+require 'sinatra'
+
+set :bind, '$(IP)'
+set :port, $(RUBY_PORT)
+
+get '/:fileSize' do
+  "x is #{params['fileSize']}"
+end

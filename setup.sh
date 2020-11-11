@@ -23,6 +23,9 @@ ICEBREAK_URL=$(jq '.iceBreak.url' -r ./config.json)
 ICEBREAK_EXE=$(jq '.iceBreak.exeFile' -r ./config.json)
 ICEBREAK_SAVF=$(jq '.iceBreak.savfFile' -r ./config.json)
 RUBY_DIR=$(jq '.ruby.dir' -r ./config.json)
+RUBY_DIR_INSTALL=$(jq '.ruby.installDir' -r ./config.json)
+RUBY_DIR_GEMSETS=$(jq '.ruby.gemsets' -r ./config.json)
+RUBY_DIR_GEMPATH=$(jq '.ruby.gemPath' -r ./config.json)
 
 ################################################################################
 #
@@ -277,6 +280,8 @@ install_ruby()
 		echo -e "\e[32m install and run Ruby ...\e[0m"
 		cd ${APPS_DIR}
 		if ! [ -d "${RUBY_DIR}" ]; then
+			cd && mkdir -p ${RUBY_DIR_GEMSETS}
+			cd ${APPS_DIR}
 			mkdir ${RUBY_DIR} && cd ${RUBY_DIR}
 			system -Kp "CRTSAVF FILE(${LIBRARY}/PRUBY_BASE)"
 			curl -L -k -o /QSYS.LIB/${LIBRARY}.LIB/PRUBY_BASE.FILE https://github.com/PowerRuby/DE_train_01/releases/download/V2R0M0/pruby_base.savf
@@ -287,12 +292,26 @@ install_ruby()
 			system -kp "RSTLICPGM LICPGM(1PRUBY1) DEV(*SAVF) LNG(2924) SAVF(${LIBRARY}/PRUBY_BASE)"
 			system -kp "RSTLICPGM LICPGM(1PRUBY1) DEV(*SAVF) LNG(2924) OPTION(1) SAVF(${LIBRARY}/PRUBY_0001)"
 			system -kp "RSTLICPGM LICPGM(1PRUBY1) DEV(*SAVF) LNG(2924) OPTION(6) SAVF(${LIBRARY}/PRUBY_0006)"
+			${RUBY_DIR_INSTALL}/gem install sinatra
 		fi
 		cd ${RUBY_DIR}
 		
 		go_home		
 		gmake build-ruby		
 		gmake run-ruby &
+}
+
+#
+#		set_ruby_path
+#
+
+
+set_ruby_path()
+
+{
+	echo -e "\e[32m EnvVar für Ruby werden gesetzt ...\e[0m"
+	export GEM_HOME=$HOME/${RUBY_DIR_GEMSETS}
+	export GEM_PATH=${RUBY_DIR_GEMPATH}:$GEM_HOME
 }
 
 
@@ -340,6 +359,8 @@ for arg in "$@"; do
    		"--ruby")     install_ruby ;;
 	esac
 done
+
+set_ruby_path
 
 echo -e "\e[32mSetup is done. \e[0m"
 

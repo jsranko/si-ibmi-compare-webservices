@@ -1,7 +1,15 @@
 <?php
 
 set_time_limit(1000);
+header('Content-Type: application/json');
 
-echo "Hello from PHP";
+$fileSize = $_GET['fileSize'];
+
+$data = file_get_contents("config.json");
+$rootNode = json_decode($data, true);
+
+$fileName = $rootNode['files'][$fileSize];
+
+echo "Hello from PHP" . $fileName;
  
 ?>
