@@ -73,7 +73,7 @@ CGI_PGMS=\
 	$(patsubst %.rpgle,%.pgm,$(wildcard $(DIR_CGI)/*.$(EXT_RPG)))
 
 CGI_CONF=\
-	$(patsubst %.confsrc,%.httpd,$(wildcard $(DIR_CGI)/*.confsrc)) \
+	$(patsubst %.confsrc,%.conf,$(wildcard $(DIR_CGI)/*.confsrc)) \
 	$(patsubst %.cgisrc,%.cgi,$(wildcard $(DIR_CGI)/*.cgisrc))
 
 NODEJS_PGMS=\
@@ -158,9 +158,8 @@ run-ileastic:
 	system -Kp "SBMJOB CMD(CALL PGM($(LIBRARY)/ILEASRV1)) JOB($(ILEASTIC_JOB)) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)"
 
 run-cgi:
-	echo "Run CGI Server manually!"
 	# liblist -a $(LIBRARY); \
-	# system -Kp "STRTCPSVR SERVER(*HTTP) HTTPSVR($(CGI_SERVER))"
+	system -Kp "STRTCPSVR SERVER(*HTTP) HTTPSVR($(CGI_SERVER))"
 
 run-nodejs:
 	echo "$(shell /QOpenSys/pkgs/lib/nodejs12/bin/pm2 start $(NODEJS_PGMS))"
@@ -250,15 +249,19 @@ display-vars:
 	java -cp $(IWSBUILDER_CP) $(IWSBUILDER_CLASSNAME) ./$@ && \
 	$(call copy_to_srcpf,$(ROOT_DIR)/$@,$(LIBRARY),$(notdir $(DIR_IWSS)),$(notdir $*))
 
-%.confsrc: %.httpd
+%.conf: %.confsrc
 	$(call substitute,$*.confsrc,$@) 
-	# cat $@
-	# cp $@ $(CGI_ROOT)/conf/$(notdir $<) && chmod 775 $(CGI_ROOT)/conf/$(notdir $<)
+	-system -Kp "ENDTCPSVR SERVER(*HTTP) HTTPSVR($(CGI_SERVER))"
+	rm -r $(CGI_ROOT)
+	cp -r /www/qiccqxml $(CGI_ROOT)
+	cp $@ $(CGI_ROOT)/conf/$(notdir $@)
+	chown -R qtmhhttp $(CGI_ROOT)
 
-%.cgisrc: %.cgi
+%.cgi: %.cgisrc
 	$(call substitute,$*.cgisrc,$@)
-	-system -Kp "ADDPFM FILE(QUSRSYS/$(notdir $(DIR_CGI))) MBR($(notdir $*))"
-	system -Kp "CPYFRMIMPF FROMSTMF('$(ROOT_DIR)/$@') TOFILE(QUSRSYS/$(notdir $(DIR_CGI)) $(notdir $*)) MBROPT(*REPLACE) RCDDLM(*CRLF)"
+	-system -Kp "RMVM FILE(QUSRSYS/QATMHINSTC) MBR($(CGI_SERVER))"
+	-system -Kp "ADDPFM FILE(QUSRSYS/QATMHINSTC) MBR($(CGI_SERVER))"
+	system -Kp "CPYFRMIMPF FROMSTMF('$(ROOT_DIR)/$@') TOFILE(QUSRSYS/QATMHINSTC $(CGI_SERVER)) MBROPT(*REPLACE) RCDDLM(*CRLF)"
 
 %.js: %.jssrc
 	$(call substitute,$*.jssrc,$@)
@@ -290,7 +293,7 @@ clean:
 	-rm $(DIR_SRC)/$(notdir $(DIR_IWSS))/*.$(EXT_IWSSCONF)
 	-rm $(DIR_SRC)/$(notdir $(DIR_CGI))/*.cgisrv
 	-rm $(DIR_SRC)/$(notdir $(DIR_CGI))/*.httpd
-	-rm $(DIR_SRC)/$(notdir $(DIR_NODEJS))/*.nodejs
+	-rm $(DIR_SRC)/$(notdir $(DIR_NODEJS))/*.js
 	-rm $(DIR_SRC)/$(notdir $(PHP_PGMS))/*.php
 	-rm $(DIR_SRC)/$(notdir $(PYTHON_PGMS))/*.py
 	-rm $(DIR_SRC)/$(notdir $(MONO_PGMS))/*.cs

@@ -1,4 +1,4 @@
-     H BNDDIR('$(LIBRARY)/$(LIBRARY)')
+     H BNDDIR('SICOMIIWS/SICOMIIWS') ACTGRP(*NEW)
       **************************************************************************
       * Variables for the CGI interface API for QtmhRdStIn.                    *
      DBufIn            S           1024a   INZ
@@ -14,6 +14,7 @@
       **************************************************************************
       *Variables for the CGI interface API for QtmhWrStout.
      DBufOut           S           2048a   INZ
+     DBufOutUtf8       S           2048a   INZ CCSID(*UTF8)
      DBufOutln         S              9b 0
       *************************************************************************
       ***                   Data structure for error reporting.             ***
@@ -56,7 +57,8 @@
      DEResp            S              4A   INZ
      D**************************************************************************
      D* Define line feed that is required when writing data to std output.   ***
-     Dlinefeed         C                   x'15'
+     Dlinefeed         S              2    inz(x'0D25')
+     DlinefeedUtf8     S              1    inz(x'0A')
      Dbreak            C                   '<br>'
      Dmaxdataln        S              4B 0 INZ(1024)
      D**************************************************************************
@@ -162,82 +164,94 @@
       **************************************************************************
       * For each line of HTML, move it to BufOut and set the
       * output buffer's length(BufOutLn).
-     C                   do        arrsize       i                 5 0
-      * Write out HTTP response and HTML lines.
-     C     i             iflt      17
-     C     BufOut        cat       html(i):0     BufOut
-     C     BufOut        cat       linefeed:0    BufOut
-     C                   endif
-      * Add the data read from standard input or QUERY_STRING.
-     C     i             ifeq      17
-     D* Add html break to BufOut string written to standard output
-     D* when input is greater than 79.
-     C     Result        dowgt     79
-     C     80            SUBST     BufIn:cnt     WORK2
-     C                   cat       work2:0       BufOut
-     C                   cat       break:0       BufOut
-      * For V4R2, the newline after 254 characters is not needed.
-     C*                  cat       linefeed:0    BufOut
-     C                   add       80            cnt
-     C                   sub       80            Result
-     C                   ENDDO
-     C                   IF        Result > 0
-     C                   clear                   WORK2
-     C     Result        SUBST     BufIn:cnt     WORK2
-     C                   cat       work2:0       BufOut
-     C                   cat       break:0       BufOut
-      * For V4R2, the newline after 254 characters is not needed.
-     C*                  cat       linefeed:0    BufOut
-     C                   ENDIF
-     C                   endif
-      * Add the Environment variable header line for REQUEST_METHOD.
-     C     i             ifeq      18
-     C     BufOut        cat       html(i):0     BufOut
-     C     BufOut        cat       break:0       BufOut
-      * For V4R2, the newline after 254 characters is not needed.
-     C*    BufOut        cat       linefeed:0    BufOut
-     C                   endif
-      * Display the Environment variable REQUEST_METHOD.
-     C     i             ifeq      19
-     C     BufOut        cat       EnvMDResp:0   BufOut
-      * For V4R2, the newline after 254 characters is not needed.
-     C*    BufOut        cat       linefeed:0    BufOut
-     C                   endif
-      * Add the Environment variable header line for SERVER_SOFTWARE.
-     C     i             ifeq      20
-     C     BufOut        cat       html(i):0     BufOut
-     C     BufOut        cat       break:0       BufOut
-      * For V4R2, the newline after 254 characters is not needed.
-     C*    BufOut        cat       linefeed:0    BufOut
-     C                   endif
-      * Display the Environment variable SERVER_SOFTWARE.
-     C     i             ifeq      21
-     C     BufOut        cat       EnvSSResp:0   BufOut
-      * For V4R2, the newline after 254 characters is not needed.
-     C*    BufOut        cat       linefeed:0    BufOut
-     C                   endif
-      * Write out closing HTML lines.
-     C     i             ifgt      21
-     C     BufOut        cat       html(i):0     BufOut
-      * For V4R2, the newline after 254 characters is not needed.
-     C*    BufOut        cat       linefeed:0    BufOut
-     C                   endif
-     C                   enddo
-      **************************************************************************
-      **** Get length of data to be sent to standard output.
-      **************************************************************************
-     C                   z-add     1             i
-     C     arrsize       mult      80            i
-     C     a             doune     ' '
-     C     1             subst     bufout:i      a                 1
-     C                   sub       1             i
-     C                   enddo
-     C     i             add       1             BufOutLn
+     C*                   do        arrsize       i                 5 0
+      ** Write out HTTP response and HTML lines.
+     C*     i             iflt      17
+     C*     BufOut        cat       html(i):0     BufOut
+     C*     BufOut        cat       linefeed:0    BufOut
+     C*                   endif
+      ** Add the data read from standard input or QUERY_STRING.
+     C**     i             ifeq      17
+     D*** Add html break to BufOut string written to standard output
+     D*** when input is greater than 79.
+     C**     Result        dowgt     79
+     C**     80            SUBST     BufIn:cnt     WORK2
+     C**                   cat       work2:0       BufOut
+     C**                   cat       break:0       BufOut
+      *** For V4R2, the newline after 254 characters is not needed.
+     C***                  cat       linefeed:0    BufOut
+     C**                   add       80            cnt
+     C**                   sub       80            Result
+     C**                   ENDDO
+     C**                   IF        Result > 0
+     C**                   clear                   WORK2
+     C**     Result        SUBST     BufIn:cnt     WORK2
+     C**                   cat       work2:0       BufOut
+     C**                   cat       break:0       BufOut
+      *** For V4R2, the newline after 254 characters is not needed.
+     C***                  cat       linefeed:0    BufOut
+     C**                   ENDIF
+     C**                   endif
+      ** Add the Environment variable header line for REQUEST_METHOD.
+     C*     i             ifeq      18
+     C**    BufOut        cat       html(i):0     BufOut
+     C**    BufOut        cat       break:0       BufOut
+      ** For V4R2, the newline after 254 characters is not needed.
+     C**    BufOut        cat       linefeed:0    BufOut
+     C*                   endif
+      ** Display the Environment variable REQUEST_METHOD.
+     C*     i             ifeq      19
+     C**    BufOut        cat       EnvMDResp:0   BufOut
+      ** For V4R2, the newline after 254 characters is not needed.
+     C**    BufOut        cat       linefeed:0    BufOut
+     C*                   endif
+      ** Add the Environment variable header line for SERVER_SOFTWARE.
+     C*     i             ifeq      20
+     C**    BufOut        cat       html(i):0     BufOut
+     C**    BufOut        cat       break:0       BufOut
+      ** For V4R2, the newline after 254 characters is not needed.
+     C**    BufOut        cat       linefeed:0    BufOut
+     C*                   endif
+      ** Display the Environment variable SERVER_SOFTWARE.
+     C*     i             ifeq      21
+     C**    BufOut        cat       EnvSSResp:0   BufOut
+      ** For V4R2, the newline after 254 characters is not needed.
+     C**    BufOut        cat       linefeed:0    BufOut
+     C*                   endif
+      ** Write out closing HTML lines.
+     C*     i             ifgt      21
+     C**    BufOut        cat       html(i):0     BufOut
+      ** For V4R2, the newline after 254 characters is not needed.
+     C**    BufOut        cat       linefeed:0    BufOut
+     C*                   endif
+     C*                   enddo
+      ***************************************************************************
+      ***** Get length of data to be sent to standard output.
+      ***************************************************************************
+     C*                   z-add     1             i
+     C*     arrsize       mult      80            i
+     C*     a             doune     ' '
+     C*     1             subst     bufout:i      a                 1
+     C*                   sub       1             i
+     C*                   enddo
+     C*     i             add       1             BufOutLn
       **************************************************************************
       **** Send BufOut to standard output.
       **************************************************************************
+       BufOut = 'Content-type: application/json' +
+                linefeed +
+                linefeed;
+       BufOutLn = %len(%trim(BufOut));
      C                   callb     APIStdOut
      C                   parm                    BufOut
+     C                   parm                    BufOutLn
+     C                   parm                    QUSEC
+
+       BufOutUtf8 = '{"error" : "Filesize not found."}'+
+                linefeed;
+       BufOutLn = %len(%trim(BufOutUtf8));
+     C                   callb     APIStdOut
+     C                   parm                    BufOutUtf8
      C                   parm                    BufOutLn
      C                   parm                    QUSEC
       **************************************************************************
@@ -294,26 +308,7 @@
       * this newline does not exist, Then NO data will be served to the client.
       * This newline represents the end of the HTTP header and the data follows.
 **CTDATA HTML
-Content-type: text/html
+Content-type: application/json
 
-<html>
-<head>
-<title>Sample iSeries RPG program executed by HTTP Server as a CGI</title>
-</head>
-<body>
-<h1>Sample iSeries RPG program.</h1>
-<br>
-<br>
-<p>This is sample output using iSeries HTTP Server CGI APIs from an RPG
-program.  This program reads the input data from Query_String
-environment variable when the Request_Method is GET and reads
-standard input when the Request_Method is POST.
-<p>Server input:<br>
-
-<p>Environment variable - REQUEST_METHOD:
-
-<p>Environment variable - SERVER_SOFTWARE:
-
-</body>
-</html>
+{"error" : "Filesize not found."}
 

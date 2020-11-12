@@ -15,5 +15,9 @@ ScriptAlias /cgi-bin/ /QSYS.LIB/$(LIBRARY).LIB/
     Options +ExecCGI
     order allow,deny
     allow from all
+    CGIRecyclePersist on
+    DefaultNetCCSID 1208
+    CGIJobCCSID 273      
+    CGIConvMode EBCDIC 
+    SetEnv QIBM_CGI_LIBRARY_LIST "SICOMIIWS"
 </Directory>
-
