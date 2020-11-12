@@ -260,7 +260,7 @@ display-vars:
 	-system -Kp "ADDPFM FILE(QUSRSYS/$(notdir $(DIR_CGI))) MBR($(notdir $*))"
 	system -Kp "CPYFRMIMPF FROMSTMF('$(ROOT_DIR)/$@') TOFILE(QUSRSYS/$(notdir $(DIR_CGI)) $(notdir $*)) MBROPT(*REPLACE) RCDDLM(*CRLF)"
 
-%.jssrc: %.js
+%.js: %.jssrc
 	$(call substitute,$*.jssrc,$@)
 
 %.php: %.phpsrc

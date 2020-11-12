@@ -169,10 +169,11 @@ install_nodejs()
 {	
 		echo -e "\e[32m install nodejs ...\e[0m"			
 		npm install -g pm2
+		npm install -g express
 		
 		go_home		
 		gmake build-nodejs		
-		gmake run-nodejs &
+		gmake run-nodejs
 		
 }
 
