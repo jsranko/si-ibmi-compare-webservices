@@ -19,5 +19,5 @@ ScriptAlias /cgi-bin/ /QSYS.LIB/$(LIBRARY).LIB/
     DefaultNetCCSID 1208
     CGIJobCCSID 273      
     CGIConvMode EBCDIC 
-    SetEnv QIBM_CGI_LIBRARY_LIST "SICOMIIWS"
+    SetEnv QIBM_CGI_LIBRARY_LIST "$(LIBRARY)"
 </Directory>

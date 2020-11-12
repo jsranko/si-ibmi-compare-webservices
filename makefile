@@ -41,6 +41,7 @@ DIR_SPRING=$(DIR_SRC)/java/hello-spring-boot
 DIR_RUBY=$(DIR_SRC)/ruby
 EXT_CLLE=clle
 EXT_RPG=rpgle
+EXT_SQLRPG=sqlrpgle
 EXT_CPY=rpgle
 EXT_IWSS=iwss
 EXT_IWSSCONF=iwssconf
@@ -70,7 +71,8 @@ IWSS=\
 	$(patsubst %.$(EXT_IWSS),%.$(EXT_IWSSCONF),$(wildcard $(DIR_IWSS)/*.$(EXT_IWSS)))
 
 CGI_PGMS=\
-	$(patsubst %.rpgle,%.pgm,$(wildcard $(DIR_CGI)/*.$(EXT_RPG)))
+	$(patsubst %.$(EXT_RPG),%.pgm,$(wildcard $(DIR_CGI)/*.$(EXT_RPG))) \
+	$(patsubst %.$(EXT_SQLRPG),%.pgm,$(wildcard $(DIR_CGI)/*.$(EXT_SQLRPG)))
 
 CGI_CONF=\
 	$(patsubst %.confsrc,%.conf,$(wildcard $(DIR_CGI)/*.confsrc)) \
@@ -233,8 +235,15 @@ display-vars:
 
 %.pgm: %.rpgle
 	$(call substitute,$*.$(EXT_RPG),$@)
-	liblist -a $(ILEASTIC_LIB); \
+	# liblist -a $(ILEASTIC_LIB); \
 	system -Kp "CRTBNDRPG PGM($(LIBRARY)/$(notdir $*)) SRCSTMF('$(ROOT_DIR)/$@') DFTACTGRP(*NO) ACTGRP(*NEW) DBGVIEW($(DBGVIEW)) REPLACE(*YES) INCDIR('$(ROOT_DIR)/$(DIR_SRC)') TGTCCSID(*JOB) OUTPUT(*NONE)" && \
+	$(call copy_to_srcpf,$(ROOT_DIR)/$<,$(LIBRARY),$(notdir $(DIR_RPG)),$(notdir $*)) || \
+	-rm $@	
+
+%.pgm: %.sqlrpgle
+	$(call substitute,$*.$(EXT_SQLRPG),$@)
+	# liblist -a $(ILEASTIC_LIB); \
+	system -Kp "CRTSQLRPGI OBJ($(LIBRARY)/$(notdir $*)) SRCSTMF('$(ROOT_DIR)/$@') OBJTYPE(*PGM) RPGPPOPT(*LVL2) DBGVIEW($(DBGVIEW)) REPLACE(*YES) COMPILEOPT('INCDIR(''$(ROOT_DIR)/$(DIR_SRC)'') OUTPUT(*NONE) TGTCCSID(*JOB)')" && \
 	$(call copy_to_srcpf,$(ROOT_DIR)/$<,$(LIBRARY),$(notdir $(DIR_RPG)),$(notdir $*)) || \
 	-rm $@	
 
