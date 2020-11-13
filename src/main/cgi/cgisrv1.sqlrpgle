@@ -27,6 +27,7 @@ dcl-ds tApierror qualified template;        // API-Error
   *n         char(01) inz(*allx'00');
   ErrData    char(256) inz(*allx'00');      // ErrorData
 end-ds;
+dcl-c cHTTP_GET const('GET');
 dcl-s tHTTP_Method varchar(20) template;
 dcl-s tHTTP_Query varchar(1000) template;
 dcl-s tHTTP_Header varchar(900) template;
@@ -34,18 +35,21 @@ dcl-s tHTTP_Body varchar(10000) template;
 dcl-s tHTTP_ParamValue varchar(900) template;
 dcl-s tHTTP_ParamName varchar(100) template;
 
-dcl-s method like(tHTTP_Method);
-dcl-s query like(tHTTP_Query);
 dcl-s paramValue like(tHTTP_ParamValue);
 dcl-ds dsApiError likeds(tApierror) inz(*likeds);
 dcl-s body like(tHTTP_Body) ccsid(*utf8);
 dcl-s linefeed char(2) inz(x'0D25');
 
   monitor;
-    //method  = %str(getenv('REQUEST_METHOD':dsApiError));
-    //query  = %str(getenv('QUERY_STRING':dsApiError));
+    method  = %str(getenv('REQUEST_METHOD':dsApiError));
   on-error;
   endmon;
+
+  select;
+  when method = cHTTP_GET;
+    paramValue = getParamValue(query:'fileSize');
+
+  endsl;
 
   writeHeader();
 
@@ -53,21 +57,20 @@ dcl-s linefeed char(2) inz(x'0D25');
   body = '{"error" : "Filesize not found."}' + linefeed;
   wrtStdOut(%addr(body:*data):%len(body):dsApiError);
 
-  select;
-  when method = 'GET';
-    paramValue = getParamValue(query:'fileSize');
-
-  endsl;
-
   return;
 
 // ------------------------------------------------------------------------
 
 dcl-proc getParamValue;
 dcl-pi getParamValue like(tHTTP_ParamValue);
-  Query like(tHTTP_Query);
   ParamName like(tHTTP_ParamName) const;
 end-pi;
+dcl-s query like(tHTTP_Query);
+
+  monitor;
+    query  = %str(getenv('QUERY_STRING':dsApiError));
+  on-error;
+  endmon;
 
 return '';
 end-proc;
@@ -87,3 +90,19 @@ dcl-s property like(tHTTP_Header);
 
 return *on;
 end-proc;
+
+// ------------------------------------------------------------------------
+
+dcl-proc getMethod;
+dcl-pi getMethod like(tHTTP_Method);
+end-pi;
+dcl-s method like(tHTTP_Method);
+
+  monitor;
+    method  = %str(getenv('REQUEST_METHOD':dsApiError));
+  on-error;
+  endmon;
+
+return *on;
+end-proc;
+
