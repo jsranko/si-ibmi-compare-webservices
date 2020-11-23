@@ -1,0 +1,42 @@
+{
+	"server": { 
+		"name": "IWSSRV1X",
+		"port": 44002,
+		"userId": "CECUSER",
+		"noHttp": true
+	},
+	"services": [
+		{
+			"name": "WebServicesTest",
+			"programObject": "/QSYS.LIB/SICOMIIWS.LIB/IWSSRV1.PGM",
+			"userId": "*SERVER",
+			"serviceType": "*REST",
+			"propertiesFile": "/tmp/IWSSRV1.propertiesFile",
+			"libraryList": "SICOMIIWS",
+			"libraryListPosition": "*FIRST",
+			"useParamNameAsElementName": true,
+			"printErrorDetails": true,
+			"properties": [
+				{
+
+					"HelloWorld.http.request.method": "GET",
+					"HelloWorld.wrap.input.parameters": false,
+					"HelloWorld.wrap.output.parameter": false,
+					"HelloWorld.consumes": "*/*",
+					"HelloWorld.produces": "application/json",
+					"HelloWorld.response.code.parameter":"ResponseCode",
+					"HelloWorld.Response.usage": "output",
+					"HelloWorld.ResponseCode.usage": "output",
+					"responses" : {
+						"200": {
+           					"description": "Successful operation."
+            			},
+            			"500": {
+           					"description": "Sorry, the developer still has a construction site here."
+            			}
+            		}
+				}
+			]
+		}
+	]
+}

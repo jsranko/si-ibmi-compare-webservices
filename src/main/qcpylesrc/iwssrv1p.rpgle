@@ -1,18 +1,17 @@
 **FREE
-/if not defined(IWSSRV1P)
- /define IWSSRV1P
-/else
- /eof
+/if defined(IWSSRV1P)
+  /eof
 /endif
+
+/define IWSSRV1P
+
+/include qcpylesrc/httpp.rpgle
 
 //==========================================================================================
 // Templates
 //==========================================================================================
 
-
-dcl-s tJSON char(1024) template;
-dcl-s tHttpStatus int(10) template;
-dcl-s tHttpHeaderEntry char(100) template;
+dcl-s tIWSSRV1_FileSize varchar(100) template;
 
 /if defined(IWSSRV1)
   /eof
@@ -23,6 +22,7 @@ dcl-s tHttpHeaderEntry char(100) template;
 //==========================================================================================
 
 dcl-pr HelloWorld;
-  Response like(tJSON);
+  fileSize like(tIWSSRV1_FileSize);
+  Response like(tHTTP_Body);
   ResponseCode like(tHttpStatus);
 end-pr;

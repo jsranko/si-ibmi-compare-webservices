@@ -43,8 +43,6 @@ EXT_CLLE=clle
 EXT_RPG=rpgle
 EXT_SQLRPG=sqlrpgle
 EXT_CPY=rpgle
-EXT_IWSS=iwss
-EXT_IWSSCONF=iwssconf
 IWSBUILDER_CP=$(ROOT_DIR)/Apps/si-iws-builder/IWSBuilder/target/si-iws-builder-jar-with-dependencies.jar
 IWSBUILDER_CLASSNAME=de.sranko_informatik.ibmi.iwsbuilder.App
 SPRING_CP=$(DIR_SPRING)/target/$(SPRING_JAR)
@@ -62,13 +60,13 @@ ILEASTIC_PGMS=\
 	$(patsubst %.clle,%.clpgm,$(wildcard $(DIR_ILEASTIC)/*.$(EXT_CLLE)))
 
 IWS_PGMS=\
-	$(patsubst %.rpgle,%.pgm,$(wildcard $(DIR_IWS)/*.$(EXT_RPG)))
+	$(patsubst %.$(EXT_SQLRPG),%.pgm,$(wildcard $(DIR_IWS)/*.$(EXT_SQLRPG)))
 
 CPYS:=\
 	$(patsubst %.$(EXT_CPY),%.cpysrc,$(wildcard $(DIR_CPY)/*.$(EXT_CPY)))
 
 IWSS=\
-	$(patsubst %.$(EXT_IWSS),%.$(EXT_IWSSCONF),$(wildcard $(DIR_IWSS)/*.$(EXT_IWSS)))
+	$(patsubst %.iwsssrc,%.iwss,$(wildcard $(DIR_IWSS)/*.iwsssrc))
 
 CGI_PGMS=\
 	$(patsubst %.$(EXT_RPG),%.pgm,$(wildcard $(DIR_CGI)/*.$(EXT_RPG))) \
@@ -252,8 +250,8 @@ display-vars:
 	$(call copy_to_srcpf,$(ROOT_DIR)/$<,$(LIBRARY),$(notdir $(DIR_CPY)),$(notdir $*)) && \
 	touch $@
 
-%.$(EXT_IWSSCONF): %.$(EXT_IWSS)
-	$(call substitute,$*.$(EXT_IWSS),$@)
+%.iwss: %.iwsssrc
+	$(call substitute,$*.iwsssrc,$@)
 	# java $(JAVA_DEBUG) -cp $(IWSBUILDER_CP) $(IWSBUILDER_CLASSNAME) ./$@ && \
 	java -cp $(IWSBUILDER_CP) $(IWSBUILDER_CLASSNAME) ./$@ && \
 	$(call copy_to_srcpf,$(ROOT_DIR)/$@,$(LIBRARY),$(notdir $(DIR_IWSS)),$(notdir $*))

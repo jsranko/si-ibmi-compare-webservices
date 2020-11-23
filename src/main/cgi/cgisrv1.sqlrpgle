@@ -2,6 +2,8 @@
 
 ctl-opt bnddir('SICOMIIWS/SICOMIIWS') actgrp(*new) usrprf(*owner);
 
+/include qcpylesrc/httpp.rpgle
+
 dcl-pr readStdIn extproc('QtmhRdStin');
   Data      pointer value;
   Datalen   int(10) const;
@@ -34,14 +36,7 @@ dcl-ds tApierror qualified template;        // API-Error
   *n         char(01) inz(*allx'00');
   ErrData    char(256) inz(*allx'00');      // ErrorData
 end-ds;
-dcl-c cHTTP_GET const('GET');
-dcl-s tPath varchar(50) template;
-dcl-s tHTTP_Method varchar(20) template;
-dcl-s tHTTP_Query varchar(1000) template;
-dcl-s tHTTP_Header varchar(900) template;
-dcl-s tHTTP_Body varchar(10000) template;
-dcl-s tHTTP_ParamValue varchar(900) template;
-dcl-s tHTTP_ParamName varchar(100) template;
+
 
 dcl-s fileSize like(tHTTP_ParamValue);
 dcl-ds dsApiError likeds(tApierror) inz(*likeds);
@@ -143,25 +138,46 @@ dcl-proc getBody;
 dcl-pi getBody like(tHTTP_Body);
   fileSize like(tHTTP_ParamValue) options(*nopass:*omit);
 end-pi;
-dcl-s body like(tHTTP_Body);
-dcl-s configData sqltype(CLOB:1000);
+dcl-s output like(tHTTP_Body);
+dcl-s fileName like(tPath);
 
-  configData = getConfigData('config.json');
+  output = '{"error" : "Filesize not found."}' + linefeed;
+  fileName = getFileName('/home/CECUSER/si-ibmi-compare-webservices/config.json': fileSize);
+  if fileName <> *blanks;
+    output = getFileData('/home/CECUSER/si-ibmi-compare-webservices/'+fileName);
+  endif;
 
-  body = '{"error" : "Filesize not found."}' + linefeed;
-
-return body;
+return output;
 end-proc;
 
 // ------------------------------------------------------------------------
 
-dcl-proc getConfigData;
-dcl-pi getConfigData sqltype(CLOB:1000);
-  configFile like(tPath);
+dcl-proc getFileName;
+dcl-pi getFileName like(tPath);
+  configFile like(tPath) const;
+  fileSize like(tHTTP_ParamValue) const;
 end-pi;
-dcl-s configData sqltype(CLOB:1000);
+dcl-s configData sqltype(CLOB:32000);
+dcl-s fileName like(tPath);
+dcl-s jPath varchar(50);
 
   exec sql set :configData = GET_CLOB_FROM_FILE(:configFile, 1);
+  jPath =  '$.files.' + fileSize;
+  exec sql set :fileName = JSON_Value(:configData, :jPath
+           Returning Varchar(100) Null On Empty);
 
-return configData;
+return fileName;
+end-proc;
+
+// ------------------------------------------------------------------------
+
+dcl-proc getFileData;
+dcl-pi getFileData like(tHTTP_Body);
+  fileName like(tPath) const;
+end-pi;
+dcl-s fileData sqltype(CLOB:2000000);
+
+  exec sql set :fileData = GET_CLOB_FROM_FILE(:fileName, 1);
+
+return %trim(fileData_Data);
 end-proc;

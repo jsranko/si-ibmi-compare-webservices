@@ -4,7 +4,6 @@ Apps/*
 *.pgm
 *.jar
 *.httpd
-*.cgisrc
 *.bnddir
 *.cpysrc
 *.py
@@ -12,4 +11,6 @@ Apps/*
 *.js
 *.cs
 *.rb
-*.iwssconf
+*.iwss
+*.cgi
+*.conf
