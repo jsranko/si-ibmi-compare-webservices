@@ -15,7 +15,7 @@ export PATH=/QOpenSys/pkgs/bin:$PATH
 
 Opensource package **git** must be installed. For installation execute the following command:
 ```
-yum install git
+yum install git jq
 ```
 
 ### Clone project
