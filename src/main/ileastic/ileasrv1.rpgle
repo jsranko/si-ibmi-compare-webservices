@@ -8,10 +8,11 @@
 // SBMJOB CMD(CALL PGM(DEMO01)) JOB(ILEASTIC) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)
 // -----------------------------------------------------------------------------
 ctl-opt copyright('Sitemule.com  (C), 2018');
-ctl-opt decEdit('0,') datEdit(*YMD.) main(main);
-ctl-opt debug(*yes) bndDir('$(ILEASTIC_LIB)/ILEASTIC');
+ctl-opt decEdit('0,') datEdit(*YMD.) main(main) actgrp(*new);
+ctl-opt debug(*yes) bndDir('$(ILEASTIC_LIB)/ILEASTIC':'$(ILEASTIC_LIB)/NOXDB');
 ctl-opt thread(*CONCURRENT);
 /include $(ROOT_DIR)/$(ILEASTIC_HEADERS)/ileastic.rpgle
+/include $(ILEASTIC_LIB)/qrpgleRef,jsonparser
 // -----------------------------------------------------------------------------
 // Main
 // -----------------------------------------------------------------------------
@@ -34,7 +35,18 @@ dcl-proc myservlet;
         request  likeds(IL_REQUEST);
         response likeds(IL_RESPONSE);
     end-pi;
+    dcl-s pJson Pointer;
+    dcl-s pFileData Pointer;
+    dcl-s fileName varchar(50);
+    dcl-s fileSize varchar(50) inz('1k');
+    dcl-s output varchar(32000);
 
-    il_responseWrite(response:'Hello world');
+    //pJson = json_ParseFile ('/home/CECUSER/si-ibmi-compare-webservices/config.json');
+    //fileSize  = il_getParmStr(request : 'fileSize');
+    //fileName = json_GetStr(pJson: fileSize);
+    //pFileData = json_ParseFile ('/home/CECUSER/si-ibmi-compare-webservices/'+fileName);
+    //output = json_AsText(pFileData);
+
+    il_responseWrite(response:output);
 
 end-proc;

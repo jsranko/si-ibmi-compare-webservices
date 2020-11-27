@@ -159,7 +159,7 @@ run-ileastic:
 	system -Kp "SBMJOB CMD(CALL PGM($(LIBRARY)/ILEASRV1)) JOB($(ILEASTIC_JOB)) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)"
 
 run-cgi:
-	# liblist -a $(LIBRARY); \
+	-liblist -a $(LIBRARY); \
 	system -Kp "STRTCPSVR SERVER(*HTTP) HTTPSVR($(CGI_SERVER))"
 
 run-nodejs:
@@ -235,22 +235,22 @@ display-vars:
 
 %.pgm: %.rpgle
 	$(call substitute,$*.$(EXT_RPG),$@)
-	# liblist -a $(ILEASTIC_LIB); \
+	-liblist -a $(ILEASTIC_LIB); \
 	system -Kp "CRTBNDRPG PGM($(LIBRARY)/$(notdir $*)) SRCSTMF('$(ROOT_DIR)/$@') DFTACTGRP(*NO) ACTGRP(*NEW) DBGVIEW($(DBGVIEW)) REPLACE(*YES) INCDIR('$(ROOT_DIR)/$(DIR_SRC)') TGTCCSID(*JOB) OUTPUT(*NONE)" && \
 	$(call copy_to_srcpf,$(ROOT_DIR)/$<,$(LIBRARY),$(notdir $(DIR_RPG)),$(notdir $*)) || \
 	-rm $@	
 
 %.pgm: %.sqlrpgle
 	$(call substitute,$*.$(EXT_SQLRPG),$@)
-	# liblist -a $(ILEASTIC_LIB); \
+	-liblist -a $(ILEASTIC_LIB); \
 	system -Kp "CRTSQLRPGI OBJ($(LIBRARY)/$(notdir $*)) SRCSTMF('$(ROOT_DIR)/$@') OBJTYPE(*PGM) RPGPPOPT(*LVL2) DBGVIEW($(DBGVIEW)) REPLACE(*YES) COMPILEOPT('INCDIR(''$(ROOT_DIR)/$(DIR_SRC)'') OUTPUT(*NONE) TGTCCSID(*JOB)')" && \
 	$(call copy_to_srcpf,$(ROOT_DIR)/$<,$(LIBRARY),$(notdir $(DIR_RPG)),$(notdir $*)) || \
 	-rm $@	
 
 %.clpgm: %.clle
-	$(call substitute,$*.$(EXT_RPG),$@)
-	# liblist -a $(ILEASTIC_LIB); \
-	system -Kp "CRTBNDRPG PGM($(LIBRARY)/$(notdir $*)) SRCSTMF('$(ROOT_DIR)/$@') DFTACTGRP(*NO) ACTGRP(*NEW) DBGVIEW($(DBGVIEW)) REPLACE(*YES) INCDIR('$(ROOT_DIR)/$(DIR_SRC)') TGTCCSID(*JOB) OUTPUT(*NONE)" && \
+	$(call substitute,$*.clle,$@)
+	-liblist -a $(ILEASTIC_LIB); \
+	system -Kp "CRTBNDCL PGM($(LIBRARY)/$(notdir $*)) SRCSTMF('$(ROOT_DIR)/$@') OUTPUT(*NONE) DBGVIEW(*ALL)" && \
 	$(call copy_to_srcpf,$(ROOT_DIR)/$<,$(LIBRARY),$(notdir $(DIR_RPG)),$(notdir $*)) || \
 	-rm $@	
 
