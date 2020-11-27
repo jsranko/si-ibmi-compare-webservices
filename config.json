@@ -50,6 +50,13 @@
 		"gemsets" : "gemsets/sinatra_ibm_db",
 		"gemPath" : "/PowerRuby/prV2R4/lib/ruby/gems/2.4.0/"
 	},
+	"yajl" : {
+		"dir": "yajl",
+		"library" : "YAJL",
+		"url" : "https://www.scottklement.com/yajl/YAJL.zip",
+		"zipFile": "YAJL.zip",
+		"savfFile": "yajllib72.savf"
+	},
 	"files" : { 
 		"1k" : "resources/data_1k.json", 
 		"10k" : "resources/data_10k.json",

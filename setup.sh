@@ -26,6 +26,11 @@ RUBY_DIR=$(jq '.ruby.dir' -r ./config.json)
 RUBY_DIR_INSTALL=$(jq '.ruby.installDir' -r ./config.json)
 RUBY_DIR_GEMSETS=$(jq '.ruby.gemsets' -r ./config.json)
 RUBY_DIR_GEMPATH=$(jq '.ruby.gemPath' -r ./config.json)
+YAJL_DIR=$(jq '.yajl.dir' -r ./config.json)
+YAJL_URL=$(jq '.yajl.url' -r ./config.json)
+YAJL_SAVF=$(jq '.yajl.savfFile' -r ./config.json)
+YAJL_ZIP=$(jq '.yajl.zipFile' -r ./config.json)
+YAJL_LIB=$(jq '.yajl.library' -r ./config.json)
 
 ################################################################################
 #
@@ -80,7 +85,7 @@ install_dependencies()
 			yum repolist
 		fi
 
-		yum -y install 'git' 'make-gnu' 'jq'  'curl' 'unzip' 'maven' 'nodejs12'	'python3' 'python3-pip'	'php-common' 'php-cli' 'mono-core'		
+		yum -y install 'git' 'make-gnu' 'curl' 'unzip' 'maven' 'nodejs12'	'python3' 'python3-pip'	'php-common' 'php-cli' 'mono-core'		
 }
 
 #
@@ -126,6 +131,10 @@ install_ileastic()
 install_iws()
 
 {		
+
+        echo -e "\e[32m install YAJL ...\e[0m"	
+        install_yajl
+        
 		echo -e "\e[32m install and run IWS ...\e[0m"
 		cd ${APPS_DIR}
 		if ! exist_directory "${IWS_ROOT}";  then
@@ -150,12 +159,8 @@ install_cgi()
 
 {	
 		echo -e "\e[32m install and run CGI ...\e[0m"
-		cd ${APPS_DIR}
-		# mkdir -m 775 ${CGI_ROOT}; mkdir -m 775 ${CGI_ROOT}/conf; mkdir -m 775 ${CGI_ROOT}/htdocs; mkdir -m 775 ${CGI_ROOT}/logs		
-		# mkdir -m 775 ${CGI_ROOT}; mkdir -m 775 ${CGI_ROOT}/conf		
 
 		# build Compare for CGI und run CGI server
-		go_home			
 		gmake build-cgi && gmake run-cgi 
 }
 
@@ -315,6 +320,36 @@ set_ruby_path()
 	export GEM_PATH=${RUBY_DIR_GEMPATH}:$GEM_HOME
 }
 
+#
+#       install yajl
+#
+
+
+install_yajl()
+
+{	
+		echo -e "\e[32m install YAJL ...\e[0m"
+		cd ${APPS_DIR}
+		if ! [ -d "${YAJL_DIR}" ]; then
+			mkdir ${YAJL_DIR}
+			system -Kp "CRTLIB LIB(${YAJL_LIB})"
+		fi
+		cd ${YAJL_DIR}
+
+		if ! [ -f "${YAJL_ZIP}" ]; then
+			echo -e "\e[32m${YAJL_ZIP} not found. It will be downloaded ...\e[0m"
+			wget --no-check-certificate ${YAJL_URL} &&\
+			unzip ${YAJL_ZIP} -x README.txt YAJL.zip yajlifs.zip yajllib.savf && rm ${YAJL_ZIP}
+		fi
+	   
+		system -Kp "CRTSAVF FILE(${YAJL_LIB}/YAJL)"
+		cp ${YAJL_SAVF} /QSYS.LIB/${YAJL_LIB}.LIB/YAJL.FILE
+		system -Kp "RSTOBJ OBJ(*ALL) SAVLIB(QTEMP) DEV(*SAVF) SAVF(${YAJL_LIB}/YAJL) RSTLIB(${YAJL_LIB})"
+		
+		go_home
+		echo -e "\e[32m install done.\e[0m"
+}
+
 
 ################################################################################
 #
@@ -358,6 +393,7 @@ for arg in "$@"; do
    		"--iws")      install_iws ;;
    		"--ileastic") install_ileastic ;;
    		"--ruby")     install_ruby ;;
+   		"--yajl")     install_yajl ;;
 	esac
 done
 

@@ -39,6 +39,7 @@ DIR_PYTHON=$(DIR_SRC)/python
 DIR_MONO=$(DIR_SRC)/mono
 DIR_SPRING=$(DIR_SRC)/java/hello-spring-boot
 DIR_RUBY=$(DIR_SRC)/ruby
+DIR_ILEASTIC=$(DIR_SRC)/$(ILEASTIC_DIR)
 EXT_CLLE=clle
 EXT_RPG=rpgle
 EXT_SQLRPG=sqlrpgle
@@ -56,8 +57,8 @@ SRCFILES=\
 	$(SRCFILES_0:=.srcpf)
 
 ILEASTIC_PGMS=\
-	$(patsubst %.rpgle,%.pgm,$(wildcard $(DIR_ILEASTIC)/*.$(EXT_RPG))) \
-	$(patsubst %.clle,%.clpgm,$(wildcard $(DIR_ILEASTIC)/*.$(EXT_CLLE)))
+	$(patsubst %.rpgle,%.pgm,$(wildcard $(DIR_ILEASTIC)/*.rpgle)) \
+	$(patsubst %.clle,%.clpgm,$(wildcard $(DIR_ILEASTIC)/*.clle))
 
 IWS_PGMS=\
 	$(patsubst %.$(EXT_SQLRPG),%.pgm,$(wildcard $(DIR_IWS)/*.$(EXT_SQLRPG)))
@@ -94,7 +95,7 @@ SPRING_CFGS=\
 RUBY_PGMS=\
 	$(patsubst %.rbsrc,%.rb,$(wildcard $(DIR_RUBY)/*.rbsrc))
 
-# SHELL=/QOpenSys/usr/bin/qsh
+SHELL=/QOpenSys/usr/bin/qsh
 
 # Ensure that intermediate files created by rules chains don't get
 # automatically deleted
@@ -195,6 +196,7 @@ display-vars:
 	$(info    ILEASTIC_LIB is $(ILEASTIC_LIB))
 	$(info    ILEASTIC_HEADERS is $(ILEASTIC_HEADERS))
 	$(info    ILEASTIC_PORT is $(ILEASTIC_PORT))
+	$(info    DIR_ILEASTIC is $(DIR_ILEASTIC))
 	$(info    IWS_PORT is $(IWS_PORT))
 	$(info    CGI_PORT is $(CGI_PORT))
 	$(info    CGI_DIR is $(CGI_DIR))
@@ -245,6 +247,13 @@ display-vars:
 	$(call copy_to_srcpf,$(ROOT_DIR)/$<,$(LIBRARY),$(notdir $(DIR_RPG)),$(notdir $*)) || \
 	-rm $@	
 
+%.clpgm: %.clle
+	$(call substitute,$*.$(EXT_RPG),$@)
+	# liblist -a $(ILEASTIC_LIB); \
+	system -Kp "CRTBNDRPG PGM($(LIBRARY)/$(notdir $*)) SRCSTMF('$(ROOT_DIR)/$@') DFTACTGRP(*NO) ACTGRP(*NEW) DBGVIEW($(DBGVIEW)) REPLACE(*YES) INCDIR('$(ROOT_DIR)/$(DIR_SRC)') TGTCCSID(*JOB) OUTPUT(*NONE)" && \
+	$(call copy_to_srcpf,$(ROOT_DIR)/$<,$(LIBRARY),$(notdir $(DIR_RPG)),$(notdir $*)) || \
+	-rm $@	
+
 %.cpysrc: %.$(EXT_CPY) $(DIR_CPY).srcpf
 	# @echo "$$@=$@ $$%=$% $$<=$< $$?=$? $$^=$^ $$+=$+ $$|=$| $$*=$*"
 	$(call copy_to_srcpf,$(ROOT_DIR)/$<,$(LIBRARY),$(notdir $(DIR_CPY)),$(notdir $*)) && \
@@ -259,8 +268,8 @@ display-vars:
 %.conf: %.confsrc
 	$(call substitute,$*.confsrc,$@) 
 	-system -Kp "ENDTCPSVR SERVER(*HTTP) HTTPSVR($(CGI_SERVER))"
-	rm -r $(CGI_ROOT)
-	cp -r /www/qiccqxml $(CGI_ROOT)
+	-rm -r $(CGI_ROOT)
+	cp -r /www/apachedft $(CGI_ROOT)
 	cp $@ $(CGI_ROOT)/conf/$(notdir $@)
 	chown -R qtmhhttp $(CGI_ROOT)
 
